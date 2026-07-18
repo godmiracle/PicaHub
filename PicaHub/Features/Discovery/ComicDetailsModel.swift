@@ -26,15 +26,18 @@ final class ComicDetailsModel {
 
     @ObservationIgnored private let repository: any ComicDetailsRepository
     @ObservationIgnored private let favoriteRepository: any FavoriteRepository
+    @ObservationIgnored private let onConfirmedFavoriteChange: @MainActor (String, Bool) -> Void
 
     init(
         comicID: String,
         repository: any ComicDetailsRepository,
-        favoriteRepository: any FavoriteRepository
+        favoriteRepository: any FavoriteRepository,
+        onConfirmedFavoriteChange: @escaping @MainActor (String, Bool) -> Void = { _, _ in }
     ) {
         self.comicID = comicID
         self.repository = repository
         self.favoriteRepository = favoriteRepository
+        self.onConfirmedFavoriteChange = onConfirmedFavoriteChange
     }
 
     func loadIfNeeded() async {
@@ -66,6 +69,7 @@ final class ComicDetailsModel {
             )
             try Task.checkCancellation()
             self.confirmedFavoriteState = confirmedState
+            onConfirmedFavoriteChange(comicID, confirmedState)
         } catch {
             guard !Self.isCancellation(error) else { return }
             favoriteErrorMessage = Self.favoriteMessage(for: error)
@@ -82,6 +86,7 @@ final class ComicDetailsModel {
             let confirmedState = try await favoriteRepository.fetchFavoriteState(comicID: comicID)
             try Task.checkCancellation()
             self.confirmedFavoriteState = confirmedState
+            onConfirmedFavoriteChange(comicID, confirmedState)
         } catch {
             guard !Self.isCancellation(error) else { return }
             favoriteErrorMessage = Self.favoriteMessage(for: error)
@@ -96,6 +101,7 @@ final class ComicDetailsModel {
             try Task.checkCancellation()
             detailsState = .loaded(details)
             confirmedFavoriteState = details.isFavourite
+            onConfirmedFavoriteChange(comicID, details.isFavourite)
         } catch {
             detailsState = Self.isCancellation(error)
                 ? .idle

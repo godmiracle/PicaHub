@@ -80,6 +80,23 @@ final class FavoritesModel {
         refreshErrorMessage = nil
     }
 
+    func applyConfirmedFavoriteChange(comicID: String, isFavorite: Bool) async {
+        guard !isFavorite, case var .content(content) = state else { return }
+        let originalCount = content.comics.count
+        content.comics.removeAll { $0.id == comicID }
+        guard content.comics.count != originalCount else { return }
+
+        if content.comics.isEmpty {
+            if content.currentPage < content.totalPages {
+                await refresh()
+            } else {
+                state = .empty
+            }
+        } else {
+            state = .content(content)
+        }
+    }
+
     func cancel() {
         requestGeneration += 1
         activeRequest?.cancel()

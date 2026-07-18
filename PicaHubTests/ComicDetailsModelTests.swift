@@ -200,6 +200,32 @@ struct ComicDetailsModelTests {
         #expect(await favoriteRepository.setCalls == 1)
     }
 
+    @Test func onlyConfirmedFavoriteResultIsReportedToList() async {
+        let details = Self.details()
+        let detailsRepository = ComicDetailsRepositoryStub(
+            detailResults: [.success(details)],
+            chapterResults: [.success([])]
+        )
+        let favoriteRepository = FavoriteRepositoryStub(
+            fetchResults: [.success(true)],
+            setResults: [.failure(.timedOut)]
+        )
+        var reportedStates: [Bool] = []
+        let model = ComicDetailsModel(
+            comicID: details.id,
+            repository: detailsRepository,
+            favoriteRepository: favoriteRepository,
+            onConfirmedFavoriteChange: { _, state in reportedStates.append(state) }
+        )
+        await model.loadIfNeeded()
+
+        await model.toggleFavorite()
+        #expect(reportedStates == [false])
+
+        await model.refreshFavoriteState()
+        #expect(reportedStates == [false, true])
+    }
+
     private static func details() -> ComicDetails {
         ComicDetails(
             id: "comic",

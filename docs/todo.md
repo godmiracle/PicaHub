@@ -264,6 +264,16 @@
     - 首屏覆盖 loading、content、empty、error 和 retry；
     - 下拉刷新保留可用旧内容，刷新失败显示错误且不清空列表；
     - 列表复用 `ComicBrowseRow` 与封面单图重试，离开页面取消活动请求。
+- [x] P-027 协调详情与收藏列表确认状态
+  - 优先级：高
+  - 涉及文件：`ComicDetailsModel.swift`、`ComicDetailsView.swift`、`FavoritesModel.swift`、`FavoritesView.swift`、相关模型测试
+  - 状态：已完成（2026-07-19，13 项详情与收藏列表专项测试在 iPhone Air / iOS 27 通过）
+  - 验收标准：
+    - 详情初始回读、确认 mutation 和显式刷新结果可通知来源收藏列表；
+    - mutation 模糊失败不得传播未确认的新状态；
+    - 确认取消收藏后，返回列表前按漫画 ID 移除对应项或刷新不可靠分页；
+    - 服务端外部变化通过收藏列表下拉刷新采用最新完整第一页；
+    - 一致性协调不直接调用 toggle，也不自动重试收藏写操作。
 
 ## Medium Priority
 

@@ -10,13 +10,15 @@ struct ComicDetailsView: View {
         repository: any ComicDetailsRepository,
         favoriteRepository: any FavoriteRepository,
         imageURLBuilder: ImageURLBuilder,
-        readerDependencies: ReaderDependencies
+        readerDependencies: ReaderDependencies,
+        onConfirmedFavoriteChange: @escaping @MainActor (String, Bool) -> Void = { _, _ in }
     ) {
         _model = State(
             initialValue: ComicDetailsModel(
                 comicID: comicID,
                 repository: repository,
-                favoriteRepository: favoriteRepository
+                favoriteRepository: favoriteRepository,
+                onConfirmedFavoriteChange: onConfirmedFavoriteChange
             )
         )
         self.imageURLBuilder = imageURLBuilder

@@ -103,7 +103,15 @@ struct FavoritesView: View {
                             repository: detailsRepository,
                             favoriteRepository: repository,
                             imageURLBuilder: imageURLBuilder,
-                            readerDependencies: readerDependencies
+                            readerDependencies: readerDependencies,
+                            onConfirmedFavoriteChange: { comicID, isFavorite in
+                                Task {
+                                    await model.applyConfirmedFavoriteChange(
+                                        comicID: comicID,
+                                        isFavorite: isFavorite
+                                    )
+                                }
+                            }
                         )
                     } label: {
                         ComicBrowseRow(comic: comic, imageURLBuilder: imageURLBuilder)

@@ -122,6 +122,25 @@ struct FavoritesModelTests {
         #expect(failedModel.state == .failed(message: APIError.timedOut.userMessage))
     }
 
+    @Test func confirmedUnfavoriteRemovesComicWithoutRestart() async {
+        let first = Self.comic("first")
+        let removed = Self.comic("removed")
+        let repository = FavoriteListRepositoryStub(
+            results: [.success(Self.page(number: 1, pages: 1, comics: [first, removed]))]
+        )
+        let model = FavoritesModel(repository: repository)
+        await model.loadIfNeeded()
+
+        await model.applyConfirmedFavoriteChange(comicID: removed.id, isFavorite: false)
+
+        guard case let .content(content) = model.state else {
+            Issue.record("Expected retained favorite content")
+            return
+        }
+        #expect(content.comics == [first])
+        #expect(await repository.requests.count == 1)
+    }
+
     private static func page(
         number: Int,
         pages: Int,
