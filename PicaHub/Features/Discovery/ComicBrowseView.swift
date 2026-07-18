@@ -2,9 +2,15 @@ import SwiftUI
 
 struct ComicBrowseView: View {
     @State private var model: ComicBrowseModel
+    private let imageURLBuilder: ImageURLBuilder
 
-    init(category: String, repository: any ComicRepository) {
+    init(
+        category: String,
+        repository: any ComicRepository,
+        imageURLBuilder: ImageURLBuilder
+    ) {
         _model = State(initialValue: ComicBrowseModel(category: category, repository: repository))
+        self.imageURLBuilder = imageURLBuilder
     }
 
     var body: some View {
@@ -83,7 +89,7 @@ struct ComicBrowseView: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(content.comics) { comic in
-                    ComicBrowseRow(comic: comic)
+                    ComicBrowseRow(comic: comic, imageURLBuilder: imageURLBuilder)
                         .task {
                             await model.loadNextPageIfNeeded(after: comic.id)
                         }
@@ -130,22 +136,111 @@ struct ComicBrowseView: View {
 
 private struct ComicBrowseRow: View {
     let comic: ComicSummary
+    let imageURLBuilder: ImageURLBuilder
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(comic.title)
-                .font(.headline)
-                .lineLimit(2)
-            if let author = comic.author, !author.isEmpty {
-                Text(author)
+        let presentation = ComicRowPresentation(comic: comic)
+        HStack(alignment: .top, spacing: 12) {
+            ComicCoverView(
+                url: imageURLBuilder.url(for: comic.thumb),
+                comicID: comic.id
+            )
+            .frame(width: 90, height: 130)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 7) {
+                Text(presentation.title)
+                    .font(.headline)
+                    .lineLimit(2)
+
+                Label(presentation.author, systemImage: "person")
                     .font(.subheadline)
+                    .foregroundStyle(.tint)
+                    .lineLimit(1)
+
+                if !presentation.categories.isEmpty {
+                    HStack(spacing: 5) {
+                        ForEach(presentation.categories, id: \.self) { category in
+                            Text(category)
+                                .font(.caption2)
+                                .lineLimit(1)
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 3)
+                                .background(.quaternary, in: Capsule())
+                        }
+                    }
+                }
+
+                Spacer(minLength: 0)
+
+                Text("\(presentation.pages) · \(presentation.episodes) · \(presentation.status)")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+
+                HStack(spacing: 14) {
+                    Label(presentation.likes, systemImage: "heart.fill")
+                        .foregroundStyle(.pink)
+                    Label(presentation.views, systemImage: "eye.fill")
+                        .foregroundStyle(.orange)
+                }
+                .font(.caption)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
+        .frame(minHeight: 140)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
         .accessibilityIdentifier("comic-\(comic.id)")
+    }
+}
+
+private struct ComicCoverView: View {
+    let comicID: String
+    @State private var model: ComicCoverModel?
+
+    init(url: URL?, comicID: String) {
+        self.comicID = comicID
+        _model = State(initialValue: url.map { ComicCoverModel(url: $0) })
+    }
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [.purple.opacity(0.28), .indigo.opacity(0.16)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            if let model {
+                switch model.state {
+                case .idle, .loading:
+                    ProgressView()
+                case .loaded:
+                    if let image = model.image {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                    }
+                case .failed:
+                    Button {
+                        Task { await model.retry() }
+                    } label: {
+                        VStack(spacing: 5) {
+                            Image(systemName: "arrow.clockwise")
+                            Text("重试")
+                                .font(.caption2)
+                        }
+                    }
+                    .accessibilityIdentifier("cover-retry-\(comicID)")
+                }
+            } else {
+                Image(systemName: "photo.badge.exclamationmark")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .task { await model?.loadIfNeeded() }
+        .accessibilityIdentifier("cover-\(comicID)")
     }
 }
 

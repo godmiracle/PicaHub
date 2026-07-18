@@ -88,7 +88,11 @@ struct CategoryView: View {
             ) {
                 ForEach(categories) { category in
                     NavigationLink {
-                        ComicBrowseView(category: category.title, repository: comicRepository)
+                        ComicBrowseView(
+                            category: category.title,
+                            repository: comicRepository,
+                            imageURLBuilder: imageURLBuilder
+                        )
                     } label: {
                         CategoryCard(
                             category: category,

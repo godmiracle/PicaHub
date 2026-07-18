@@ -67,6 +67,7 @@ final class PicaHubUITests: XCTestCase {
 
         XCTAssertTrue(app.descendants(matching: .any)["comics-content"].firstMatch.waitForExistence(timeout: 3))
         XCTAssertTrue(app.descendants(matching: .any)["comic-ui-test-comic"].firstMatch.exists)
+        XCTAssertTrue(app.staticTexts["测试作者"].exists)
         XCTAssertTrue(app.buttons["comic-sort-menu"].exists)
     }
 
