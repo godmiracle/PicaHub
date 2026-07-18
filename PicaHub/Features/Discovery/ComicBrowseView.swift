@@ -134,7 +134,7 @@ struct ComicBrowseView: View {
     }
 }
 
-private struct ComicBrowseRow: View {
+struct ComicBrowseRow: View {
     let comic: ComicSummary
     let imageURLBuilder: ImageURLBuilder
 

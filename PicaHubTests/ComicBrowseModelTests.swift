@@ -20,6 +20,10 @@ private actor ComicRepositoryStub: ComicRepository {
         guard !results.isEmpty else { throw APIError.invalidResponse }
         return try results.removeFirst().get()
     }
+
+    func searchComics(keyword: String, page: Int) async throws -> Page<ComicSummary> {
+        throw APIError.invalidRequest
+    }
 }
 
 private actor GatedComicRepository: ComicRepository {
@@ -37,6 +41,10 @@ private actor GatedComicRepository: ComicRepository {
         return try await withCheckedThrowingContinuation { continuation in
             self.continuation = continuation
         }
+    }
+
+    func searchComics(keyword: String, page: Int) async throws -> Page<ComicSummary> {
+        throw APIError.invalidRequest
     }
 
     func finishNextPage(_ page: Page<ComicSummary>) {

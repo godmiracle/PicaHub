@@ -72,6 +72,24 @@ final class PicaHubUITests: XCTestCase {
     }
 
     @MainActor
+    func testComicSearchPresentsResults() throws {
+        let app = makeApp(authenticated: true)
+        app.launch()
+
+        let openSearch = app.descendants(matching: .any)["open-comic-search"].firstMatch
+        XCTAssertTrue(openSearch.waitForExistence(timeout: 3))
+        openSearch.tap()
+
+        let search = app.searchFields["搜索漫画"]
+        XCTAssertTrue(search.waitForExistence(timeout: 2))
+        search.tap()
+        search.typeText("测试\n")
+
+        XCTAssertTrue(app.descendants(matching: .any)["search-content"].firstMatch.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["comic-ui-test-comic"].firstMatch.exists)
+    }
+
+    @MainActor
     private func makeApp(authenticated: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting"]

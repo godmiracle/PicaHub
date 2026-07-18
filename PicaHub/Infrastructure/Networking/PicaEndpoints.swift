@@ -33,7 +33,8 @@ enum PicaEndpoints {
         }
         return try .json(
             method: .post,
-            path: "comics/advanced-search?page=\(page)",
+            path: "comics/advanced-search",
+            query: [APIQueryItem("page", String(page))],
             body: SearchBody(keyword: keyword, sort: ComicSort.newest.rawValue, categories: [])
         )
     }

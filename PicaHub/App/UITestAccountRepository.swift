@@ -80,6 +80,14 @@ struct UITestCategoryRepository: CategoryRepository {
 
 struct UITestComicRepository: ComicRepository {
     func fetchComics(category: String, sort: ComicSort, page: Int) async throws -> Page<ComicSummary> {
+        makePage(category: category, page: page)
+    }
+
+    func searchComics(keyword: String, page: Int) async throws -> Page<ComicSummary> {
+        makePage(category: keyword, page: page)
+    }
+
+    private func makePage(category: String, page: Int) -> Page<ComicSummary> {
         Page(
             docs: [
                 ComicSummary(

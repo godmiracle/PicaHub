@@ -27,7 +27,17 @@ struct CategoryView: View {
             content
                 .navigationTitle("发现")
                 .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        NavigationLink {
+                            ComicSearchView(
+                                repository: comicRepository,
+                                imageURLBuilder: imageURLBuilder
+                            )
+                        } label: {
+                            Label("搜索", systemImage: "magnifyingglass")
+                        }
+                        .accessibilityIdentifier("open-comic-search")
+
                         Button("退出登录", systemImage: "person.crop.circle.badge.xmark") {
                             onLogout()
                         }
