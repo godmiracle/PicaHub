@@ -25,6 +25,7 @@ Remote API / Image Server
 | `PicaHub/App` | 应用组合与依赖装配 | 后续 Feature 阶段使用 |
 | `PicaHub/Domain/Models` | API 与领域数据模型 | 当前已建立基础 DTO |
 | `PicaHub/Infrastructure/Networking` | endpoint、query 编码、签名、请求、错误与图片 URL | 已完成协议基础并通过单元测试 |
+| `PicaHub/Infrastructure/Security` | Keychain token 持久化与 Security 状态映射 | 使用 `ThisDeviceOnly` 条目，不保存密码 |
 | `PicaHub/Features/ProtocolSpike` | Debug-only 真实协议门禁界面 | 密码和 token 仅在内存中 |
 | `PicaHub/Shared/Diagnostics` | 脱敏诊断日志 | 禁止敏感请求内容 |
 | `PicaHubTests` | 签名 fixture、模型、请求和 live Spike 测试 | live 测试无凭据时跳过 |
@@ -53,6 +54,7 @@ Remote API / Image Server
 
 ## Future Architecture Ideas
 
-- [ ] 协议门禁通过后实现 Keychain SessionStore 和 Repository 层
+- [x] 实现 Keychain TokenStore
+- [ ] 实现 AccountRepository 和会话状态机
 - [ ] 建立两级图片缓存与受控预取
 - [ ] 根据真机章节规模确定图片磁盘缓存和内存成本上限

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-19
+
+- 增加 Keychain-backed `TokenStore`，支持 token 保存、恢复、覆盖和幂等删除。
+- 使用 `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`，禁止 token 随备份迁移到其他设备。
+- 增加 9 项 Keychain 行为与真机系统往返测试。
+
 遵循简化版 Keep a Changelog。
 
 ## Unreleased

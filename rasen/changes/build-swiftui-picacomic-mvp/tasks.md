@@ -32,7 +32,7 @@
 
 ## 4. Account Session
 
-- [ ] 4.1 Implement a Keychain-backed token store and tests for save, restore, delete, and unavailable-Keychain errors
+- [x] 4.1 Implement a Keychain-backed token store and tests for save, restore, delete, and unavailable-Keychain errors
 - [ ] 4.2 Implement the account repository and explicit restoring, unauthenticated, authenticating, authenticated, and failed states
 - [ ] 4.3 Implement the login screen with validation, duplicate-submission prevention, progress, and retryable errors
 - [ ] 4.4 Implement startup session restoration without persisting the password

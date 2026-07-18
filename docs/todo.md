@@ -16,6 +16,15 @@
     - 收藏写入、列表回读和原状态恢复通过；
     - 401、断网、取消行为完成验证；
     - Rasen tasks 3.2 至 3.8 有可追踪结果。
+- [x] P-002 实现 Keychain token store
+  - 优先级：高
+  - 涉及文件：`PicaHub/Domain/Repositories/TokenStore.swift`、`PicaHub/Infrastructure/Security/KeychainTokenStore.swift`、`PicaHubTests/KeychainTokenStoreTests.swift`
+  - 状态：已完成（2026-07-19，真机 Keychain 往返通过）
+  - 验收标准：
+    - token 可保存、恢复、覆盖和删除；
+    - 不存在的条目可幂等删除；
+    - 空 token、损坏数据和 Keychain 不可用状态可区分；
+    - token 使用仅限本机迁移的 Keychain accessibility。
 
 ## Medium Priority
 
