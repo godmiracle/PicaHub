@@ -174,6 +174,16 @@
     - 同 URL 并发读取复用一个在途任务；
     - 单图重试清除解码缓存并绕过 URLCache；
     - 可独立取消单图、全部在途任务或只清除解码缓存。
+- [x] P-018 实现竖向连续阅读与有界图片预取
+  - 优先级：高
+  - 涉及文件：`PicaHub/Features/Reader/ReaderImageModel.swift`、`PicaHub/Features/Reader/VerticalReaderView.swift`、`PicaHubTests/ReaderImageModelTests.swift`
+  - 状态：已完成（2026-07-19，2 项阅读调度专项测试通过）
+  - 验收标准：
+    - 图片按章节仓库提供的顺序连续竖向展示；
+    - 实际可见图片优先于前向预取图片；
+    - 默认只预取当前位置之后 2 张，同时加载不超过 3 张；
+    - 可见位置变化或离开阅读器时取消不再需要的图片任务；
+    - 内存警告可清理解码缓存且不影响 URLCache 原始响应。
 
 ## Medium Priority
 

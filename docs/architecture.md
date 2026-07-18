@@ -31,6 +31,7 @@ Remote API / Image Server
 | `PicaHub/Features/ProtocolSpike` | Debug-only 真实协议门禁界面 | 密码和 token 仅在内存中 |
 | `PicaHub/Features/Account` | 登录输入、提交状态和账号界面 | 密码在提交时立即从 UI 状态清除 |
 | `PicaHub/Features/Discovery` | 分类发现页面与 MainActor 状态模型 | 过滤 web 分类；刷新期间保留旧内容 |
+| `PicaHub/Features/Reader` | 竖向连续阅读与图片调度 | 可见图片优先，只保留有界前向预取任务 |
 | `PicaHub/Shared/Diagnostics` | 脱敏诊断日志 | 禁止敏感请求内容 |
 | `PicaHubTests` | 签名 fixture、模型、请求和 live Spike 测试 | live 测试无凭据时跳过 |
 
@@ -51,6 +52,7 @@ Remote API / Image Server
 13. 章节仓库从第一页读取总页数，依次合并全部页面，按章节 ID 去重后整体反转，向详情层统一提供最新章节在前的完整列表。
 14. 章节图片仓库先读取第一页，再以最多 3 个并发请求读取剩余页；响应按页码和页面内顺序重组，并按图片 ID 去重，取消会传播到全部在途分页任务。
 15. 通用图片管线由 URLSession/URLCache 保存原始响应，`NSCache` 按解码字节成本限制内存图片；同 URL 并发读取共享任务，单图重试清除解码缓存并绕过 URLCache。
+16. 阅读器通过滚动区域中的实际图片位置确定当前可见项，优先加载该项并只预取其后 2 张图片；图片下载并发独立限制为最多 3 个，位置变化、页面离开或内存压力会分别取消过时任务或清理解码缓存。
 
 ## External Dependencies
 
@@ -84,6 +86,6 @@ Remote API / Image Server
 - [x] 补齐发现模块边界场景测试
 - [x] 实现章节图片完整分页读取
 - [x] 建立两级图片缓存与单图重试
-- [ ] 实现竖向连续滚动阅读器与有界预取
-- [ ] 接入阅读器受控预取与内存压力清理
+- [x] 实现竖向连续滚动阅读器与有界预取
+- [x] 接入阅读器受控预取与内存压力清理
 - [ ] 根据真机章节规模确定图片磁盘缓存和内存成本上限

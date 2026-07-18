@@ -53,7 +53,7 @@
 
 - [x] 6.1 Implement chapter image pagination with bounded concurrency, deterministic ordering, cancellation, and duplicate prevention
 - [x] 6.2 Implement the two-level image pipeline with URLCache, cost-limited decoded-image cache, and per-image retry
-- [ ] 6.3 Implement the vertically scrolling reader with visible-image prioritization and bounded look-ahead prefetch
+- [x] 6.3 Implement the vertically scrolling reader with visible-image prioritization and bounded look-ahead prefetch
 - [ ] 6.4 Implement previous and next chapter navigation with boundary handling and obsolete-task cancellation
 - [ ] 6.5 Implement local reading progress keyed by comic with stale chapter and image fallback
 - [ ] 6.6 Implement reader-level metadata, image-list, empty-chapter, and individual-image failure states
