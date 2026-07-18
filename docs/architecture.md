@@ -31,6 +31,7 @@ Remote API / Image Server
 | `PicaHub/Features/ProtocolSpike` | Debug-only 真实协议门禁界面 | 密码和 token 仅在内存中 |
 | `PicaHub/Features/Account` | 登录输入、提交状态和账号界面 | 密码在提交时立即从 UI 状态清除 |
 | `PicaHub/Features/Discovery` | 分类发现页面与 MainActor 状态模型 | 过滤 web 分类；刷新期间保留旧内容 |
+| `PicaHub/Features/Favorites` | 在线收藏分页列表与 MainActor 状态模型 | 复用发现模块漫画行；支持排序、刷新与请求取消 |
 | `PicaHub/Features/Reader` | 竖向连续阅读与图片调度 | 可见图片优先，只保留有界前向预取任务 |
 | `PicaHub/Shared/Diagnostics` | 脱敏诊断日志 | 禁止敏感请求内容 |
 | `PicaHubTests` | 签名 fixture、模型、请求和 live Spike 测试 | live 测试无凭据时跳过 |
@@ -58,6 +59,7 @@ Remote API / Image Server
 19. 详情章节行通过生产组合根注入的章节图片仓库、共享图片管线和阅读进度存储进入阅读器；阅读器分别呈现图片列表加载、空章、整章失败重试和单图失败重试，并在恢复完成后滚动到有效索引、用实际可见位置持续回写进度。
 20. 收藏仓库读取详情确认当前服务端状态；仅在状态与目标不同时调用不可自动重试的 toggle endpoint，并再次读取详情确认结果。分页收藏列表保持服务端分页与所选排序语义。
 21. 详情收藏控制只展示最近一次服务端已确认状态；操作期间阻止重复点击，mutation 或回读失败时保留旧状态并提供显式服务端刷新，不自动重试 toggle。
+22. 收藏列表沿用发现分页约定：最后一项触发下一页、同一时刻最多一个请求、按漫画 ID 去重；刷新期间保留旧内容，离开页面取消活动请求。
 
 ## External Dependencies
 
@@ -98,4 +100,5 @@ Remote API / Image Server
 - [x] 组装阅读器完整状态、恢复滚动与详情章节导航
 - [x] 实现收藏状态读取、确认式 mutation 与分页列表仓库
 - [x] 接入详情收藏控制、重复点击保护与显式状态回读
+- [x] 实现收藏列表排序、分页、刷新和完整加载状态
 - [ ] 根据真机章节规模确定图片磁盘缓存和内存成本上限

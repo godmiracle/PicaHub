@@ -254,6 +254,16 @@
     - mutation 期间禁用重复点击，同一时刻最多一个收藏写操作；
     - mutation 或确认回读失败时保留此前已确认状态且不自动重试 toggle；
     - 错误状态提供显式刷新入口，并以 `fetchFavoriteState` 的最新回读替换本地状态。
+- [x] P-026 实现在线收藏列表页面
+  - 优先级：高
+  - 涉及文件：`PicaHub/Features/Favorites/`、`PicaHubTests/FavoritesModelTests.swift`
+  - 状态：已完成（2026-07-19，5 项收藏列表模型专项测试在 iPhone Air / iOS 27 通过）
+  - 验收标准：
+    - 支持四种服务端排序并在切换排序时从第一页重新加载；
+    - 最后一项只触发一次下一页请求，合并时按漫画 ID 去重并在页数边界停止；
+    - 首屏覆盖 loading、content、empty、error 和 retry；
+    - 下拉刷新保留可用旧内容，刷新失败显示错误且不清空列表；
+    - 列表复用 `ComicBrowseRow` 与封面单图重试，离开页面取消活动请求。
 
 ## Medium Priority
 
