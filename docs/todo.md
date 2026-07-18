@@ -234,6 +234,16 @@
     - 使用 Instruments 或 Xcode memory gauge 记录峰值和滚动后的稳定内存，不发生 OOM、明显持续增长或崩溃；
     - 验证同时图片加载不超过 3、只前向预取 2 张，退出或切章后旧任务停止；
     - 若默认 64 MiB 解码缓存或预取参数需要调整，记录调整前后数据并重新执行同一流程。
+- [x] P-024 实现在线收藏仓库
+  - 优先级：高
+  - 涉及文件：`FavoriteRepository.swift`、`APIFavoriteRepository.swift`、`APIFavoriteRepositoryTests.swift`
+  - 状态：已完成（2026-07-19，3 项收藏仓库专项测试在 iPhone Air / iOS 27 通过）
+  - 验收标准：
+    - 可从漫画详情读取服务端确认的收藏状态；
+    - 目标状态与服务端一致时不发送 toggle mutation；
+    - 目标状态不一致时写入后重新读取详情，只有回读匹配才确认成功；
+    - 写操作不自动重试，确认不一致使用可区分错误；
+    - 收藏列表请求保留所选排序和页码并返回服务端分页对象。
 
 ## Medium Priority
 

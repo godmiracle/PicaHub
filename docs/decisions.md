@@ -267,3 +267,27 @@ task 6.6 的阅读器页面应直接绑定 `previousChapter` / `nextChapter` 的
 ### Follow-up
 
 task 6.6 已把实际可见索引回传给章节模型，并在恢复完成后滚动到 `currentImageIndex`。仍需在 task 6.8 使用稳定真实长章节验证内存峰值。
+
+## 2026-07-19 - Confirm Favorite Toggle Through Detail Readback
+
+### Decision
+
+收藏仓库对外提供目标状态语义，而不是直接暴露 toggle。写入前读取详情：服务端已是目标状态时不发送 mutation；否则调用不可自动重试的 toggle endpoint，并再次读取详情，只有服务端状态与目标一致才返回成功。
+
+### Reason
+
+远端接口是 toggle 而不是幂等 set，UI 缓存可能陈旧，网络失败也可能发生在服务端已执行之后。仅依赖 HTTP 成功或 action 字符串会把未确认状态展示为已确认，并可能在显式重试时反向切换。
+
+### Alternatives Considered
+
+- UI 直接调用 toggle 并本地翻转：无法处理陈旧状态和模糊网络失败。
+- 信任 action 字符串：当前协议 Spike 只验证了详情和列表回读，没有把 action 值确认为稳定状态契约。
+- mutation 失败后自动重试：可能重复副作用，违反既有写操作策略。
+
+### Impact
+
+收藏操作额外产生详情读请求，但只有回读确认的状态才能进入详情和列表一致性流程；确认不一致使用独立仓库错误表示。
+
+### Follow-up
+
+task 7.2 应在模糊失败时保留先前确认状态，并提供显式刷新服务端状态的入口。
