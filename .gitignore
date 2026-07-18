@@ -1,0 +1,35 @@
+# Project-local reference files
+/haka_comic-main/
+/pikapika/
+/1.md
+
+# macOS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE user settings
+.idea/
+*.swp
+*.swo
+*~
+
+# Xcode user data and build products
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+*.moved-aside
+*.xcarchive
+*.dSYM
+*.dSYM.zip
+*.dSYM.tar.gz
+
+# Swift Package Manager build state
+.build/
+.swiftpm/
+
+# Local environment variables (keep the shareable template)
+.env
+.env.*
+!.env.example
