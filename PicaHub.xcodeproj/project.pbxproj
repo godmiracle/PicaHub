@@ -1,0 +1,554 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 110;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		5E80C55F300BCB5600E0B4CD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5E80C549300BCB5500E0B4CD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5E80C550300BCB5500E0B4CD;
+			remoteInfo = PicaHub;
+		};
+		5E80C569300BCB5600E0B4CD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5E80C549300BCB5500E0B4CD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5E80C550300BCB5500E0B4CD;
+			remoteInfo = PicaHub;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		5E80C551300BCB5500E0B4CD /* PicaHub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PicaHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5E80C55E300BCB5600E0B4CD /* PicaHubTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PicaHubTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5E80C568300BCB5600E0B4CD /* PicaHubUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PicaHubUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		5E80C553300BCB5500E0B4CD /* PicaHub */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PicaHub;
+			sourceTree = "<group>";
+		};
+		5E80C561300BCB5600E0B4CD /* PicaHubTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PicaHubTests;
+			sourceTree = "<group>";
+		};
+		5E80C56B300BCB5600E0B4CD /* PicaHubUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PicaHubUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5E80C54E300BCB5500E0B4CD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		5E80C55B300BCB5600E0B4CD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		5E80C565300BCB5600E0B4CD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		5E80C548300BCB5500E0B4CD = {
+			isa = PBXGroup;
+			children = (
+				5E80C553300BCB5500E0B4CD /* PicaHub */,
+				5E80C561300BCB5600E0B4CD /* PicaHubTests */,
+				5E80C56B300BCB5600E0B4CD /* PicaHubUITests */,
+				5E80C552300BCB5500E0B4CD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5E80C552300BCB5500E0B4CD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5E80C551300BCB5500E0B4CD /* PicaHub.app */,
+				5E80C55E300BCB5600E0B4CD /* PicaHubTests.xctest */,
+				5E80C568300BCB5600E0B4CD /* PicaHubUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5E80C550300BCB5500E0B4CD /* PicaHub */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5E80C570300BCB5600E0B4CD /* Build configuration list for PBXNativeTarget "PicaHub" */;
+			buildPhases = (
+				5E80C54D300BCB5500E0B4CD /* Sources */,
+				5E80C54E300BCB5500E0B4CD /* Frameworks */,
+				5E80C54F300BCB5500E0B4CD /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				5E80C553300BCB5500E0B4CD /* PicaHub */,
+			);
+			name = PicaHub;
+			productName = PicaHub;
+			productReference = 5E80C551300BCB5500E0B4CD /* PicaHub.app */;
+			productType = "com.apple.product-type.application";
+		};
+		5E80C55D300BCB5600E0B4CD /* PicaHubTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5E80C573300BCB5600E0B4CD /* Build configuration list for PBXNativeTarget "PicaHubTests" */;
+			buildPhases = (
+				5E80C55A300BCB5600E0B4CD /* Sources */,
+				5E80C55B300BCB5600E0B4CD /* Frameworks */,
+				5E80C55C300BCB5600E0B4CD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5E80C560300BCB5600E0B4CD /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5E80C561300BCB5600E0B4CD /* PicaHubTests */,
+			);
+			name = PicaHubTests;
+			productName = PicaHubTests;
+			productReference = 5E80C55E300BCB5600E0B4CD /* PicaHubTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		5E80C567300BCB5600E0B4CD /* PicaHubUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5E80C576300BCB5600E0B4CD /* Build configuration list for PBXNativeTarget "PicaHubUITests" */;
+			buildPhases = (
+				5E80C564300BCB5600E0B4CD /* Sources */,
+				5E80C565300BCB5600E0B4CD /* Frameworks */,
+				5E80C566300BCB5600E0B4CD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5E80C56A300BCB5600E0B4CD /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5E80C56B300BCB5600E0B4CD /* PicaHubUITests */,
+			);
+			name = PicaHubUITests;
+			productName = PicaHubUITests;
+			productReference = 5E80C568300BCB5600E0B4CD /* PicaHubUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5E80C549300BCB5500E0B4CD /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					5E80C550300BCB5500E0B4CD = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					5E80C55D300BCB5600E0B4CD = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 5E80C550300BCB5500E0B4CD;
+					};
+					5E80C567300BCB5600E0B4CD = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 5E80C550300BCB5500E0B4CD;
+					};
+				};
+			};
+			buildConfigurationList = 5E80C54C300BCB5500E0B4CD /* Build configuration list for PBXProject "PicaHub" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 5E80C548300BCB5500E0B4CD;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 5E80C552300BCB5500E0B4CD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5E80C550300BCB5500E0B4CD /* PicaHub */,
+				5E80C55D300BCB5600E0B4CD /* PicaHubTests */,
+				5E80C567300BCB5600E0B4CD /* PicaHubUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5E80C54F300BCB5500E0B4CD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		5E80C55C300BCB5600E0B4CD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		5E80C566300BCB5600E0B4CD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5E80C54D300BCB5500E0B4CD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		5E80C55A300BCB5600E0B4CD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		5E80C564300BCB5600E0B4CD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5E80C560300BCB5600E0B4CD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5E80C550300BCB5500E0B4CD /* PicaHub */;
+			targetProxy = 5E80C55F300BCB5600E0B4CD /* PBXContainerItemProxy */;
+		};
+		5E80C56A300BCB5600E0B4CD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5E80C550300BCB5500E0B4CD /* PicaHub */;
+			targetProxy = 5E80C569300BCB5600E0B4CD /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		5E80C56E300BCB5600E0B4CD /* Debug configuration for PBXProject "PicaHub" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 5CQ42G2N8X;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		5E80C56F300BCB5600E0B4CD /* Release configuration for PBXProject "PicaHub" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5CQ42G2N8X;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		5E80C571300BCB5600E0B4CD /* Debug configuration for PBXNativeTarget "PicaHub" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5CQ42G2N8X;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.godmiracle.PicaHub;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5E80C572300BCB5600E0B4CD /* Release configuration for PBXNativeTarget "PicaHub" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5CQ42G2N8X;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.godmiracle.PicaHub;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		5E80C574300BCB5600E0B4CD /* Debug configuration for PBXNativeTarget "PicaHubTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5CQ42G2N8X;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.godmiracle.PicaHubTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PicaHub.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PicaHub";
+			};
+			name = Debug;
+		};
+		5E80C575300BCB5600E0B4CD /* Release configuration for PBXNativeTarget "PicaHubTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5CQ42G2N8X;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.godmiracle.PicaHubTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PicaHub.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PicaHub";
+			};
+			name = Release;
+		};
+		5E80C577300BCB5600E0B4CD /* Debug configuration for PBXNativeTarget "PicaHubUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5CQ42G2N8X;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.godmiracle.PicaHubUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PicaHub;
+			};
+			name = Debug;
+		};
+		5E80C578300BCB5600E0B4CD /* Release configuration for PBXNativeTarget "PicaHubUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5CQ42G2N8X;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.godmiracle.PicaHubUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PicaHub;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5E80C54C300BCB5500E0B4CD /* Build configuration list for PBXProject "PicaHub" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5E80C56E300BCB5600E0B4CD /* Debug configuration for PBXProject "PicaHub" */,
+				5E80C56F300BCB5600E0B4CD /* Release configuration for PBXProject "PicaHub" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		5E80C570300BCB5600E0B4CD /* Build configuration list for PBXNativeTarget "PicaHub" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5E80C571300BCB5600E0B4CD /* Debug configuration for PBXNativeTarget "PicaHub" */,
+				5E80C572300BCB5600E0B4CD /* Release configuration for PBXNativeTarget "PicaHub" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		5E80C573300BCB5600E0B4CD /* Build configuration list for PBXNativeTarget "PicaHubTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5E80C574300BCB5600E0B4CD /* Debug configuration for PBXNativeTarget "PicaHubTests" */,
+				5E80C575300BCB5600E0B4CD /* Release configuration for PBXNativeTarget "PicaHubTests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		5E80C576300BCB5600E0B4CD /* Build configuration list for PBXNativeTarget "PicaHubUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5E80C577300BCB5600E0B4CD /* Debug configuration for PBXNativeTarget "PicaHubUITests" */,
+				5E80C578300BCB5600E0B4CD /* Release configuration for PBXNativeTarget "PicaHubUITests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5E80C549300BCB5500E0B4CD /* Project object */;
+	validationLevel = 1;
+}
