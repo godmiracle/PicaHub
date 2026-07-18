@@ -35,6 +35,16 @@
     - Keychain 保存失败时不得保留内存 token；
     - 并发重复登录只发起一次认证请求；
     - 失败状态不得保留密码。
+- [x] P-004 实现 SwiftUI 登录功能
+  - 优先级：高
+  - 涉及文件：`PicaHub/Features/Account/LoginModel.swift`、`PicaHub/Features/Account/LoginView.swift`、`PicaHubTests/LoginModelTests.swift`
+  - 状态：已完成（2026-07-19，4 项 LoginModel 测试通过）
+  - 验收标准：
+    - 空邮箱或密码在本地阻止提交；
+    - 登录期间展示进度并阻止重复提交；
+    - 错误区分可重试状态并展示可理解信息；
+    - 提交后清空密码，仅保留规范化邮箱；
+    - 页面符合现有紫色渐变和半透明卡片视觉方向。
 
 ## Medium Priority
 

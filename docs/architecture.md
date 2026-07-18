@@ -29,6 +29,7 @@ Remote API / Image Server
 | `PicaHub/Infrastructure/Repositories` | 领域仓库的 API 适配器 | 登录适配器只返回 token，不暴露响应 DTO |
 | `PicaHub/Domain/Repositories` | 会话与后续业务仓库协议、状态机 | token 保留在 AccountRepository 内部 |
 | `PicaHub/Features/ProtocolSpike` | Debug-only 真实协议门禁界面 | 密码和 token 仅在内存中 |
+| `PicaHub/Features/Account` | 登录输入、提交状态和账号界面 | 密码在提交时立即从 UI 状态清除 |
 | `PicaHub/Shared/Diagnostics` | 脱敏诊断日志 | 禁止敏感请求内容 |
 | `PicaHubTests` | 签名 fixture、模型、请求和 live Spike 测试 | live 测试无凭据时跳过 |
 
@@ -58,6 +59,7 @@ Remote API / Image Server
 
 - [x] 实现 Keychain TokenStore
 - [x] 实现 AccountRepository 和会话状态机
-- [ ] 实现登录 Feature Model 与 SwiftUI 页面
+- [x] 实现登录 Feature Model 与 SwiftUI 页面
+- [ ] 接入应用启动恢复和根路由
 - [ ] 建立两级图片缓存与受控预取
 - [ ] 根据真机章节规模确定图片磁盘缓存和内存成本上限
