@@ -63,6 +63,7 @@ final class ReaderImageModel {
 
     func retry(_ index: Int) {
         guard urls.indices.contains(index), urls[index] != nil else { return }
+        guard case .failed = states[index] else { return }
         cancelLoad(at: index)
         states[index] = .idle
         startLoad(at: index, isRetry: true)

@@ -214,6 +214,26 @@
     - 图片列表加载、空章节和整章失败分别显示明确状态，整章与单图均可独立重试；
     - 恢复完成后滚动到有效图片索引，实际可见索引持续回写阅读进度；
     - 切换章节或离开阅读器时取消当前阅读器不再需要的图片任务。
+- [x] P-022 完成阅读器综合专项验收
+  - 优先级：高
+  - 涉及文件：`PicaHubTests/APIChapterImageRepositoryTests.swift`、`ImagePipelineTests.swift`、`ReaderChapterModelTests.swift`、`ReaderImageModelTests.swift`、`ReadingProgressTests.swift`
+  - 状态：已完成（2026-07-19，17 项测试、5 个 suite 在 iPhone Air / iOS 27 通过）
+  - 验收标准：
+    - 覆盖跨页图片顺序、去重、并发边界与取消；
+    - 覆盖可见图片优先、前向预取边界与位置变化取消；
+    - 覆盖单图失败不影响相邻图片，重复重试只启动一次请求；
+    - 覆盖章节叙事方向、两端边界、旧任务取消与迟到结果隔离；
+    - 覆盖分漫画进度、恢复、图片索引夹取与陈旧章节修正。
+- [ ] P-023 使用真实长高分辨率章节完成阅读器内存验收
+  - 优先级：高
+  - 涉及文件：`PicaHub/Shared/Images/ImagePipeline.swift`、`PicaHub/Features/Reader/ReaderImageModel.swift`、真机 Instruments 记录
+  - 状态：等待人工验证（当前没有已记录且可稳定复现的真实长章节样本）
+  - 验收标准：
+    - 记录漫画 ID/标题、章节 order/标题、图片总数及代表性分辨率；
+    - 在 iPhone Air / iOS 27 从冷启动进入章节，连续滚动到末尾并至少反向滚动一次；
+    - 使用 Instruments 或 Xcode memory gauge 记录峰值和滚动后的稳定内存，不发生 OOM、明显持续增长或崩溃；
+    - 验证同时图片加载不超过 3、只前向预取 2 张，退出或切章后旧任务停止；
+    - 若默认 64 MiB 解码缓存或预取参数需要调整，记录调整前后数据并重新执行同一流程。
 
 ## Medium Priority
 

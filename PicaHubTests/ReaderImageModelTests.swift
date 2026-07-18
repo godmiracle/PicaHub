@@ -7,6 +7,7 @@ private final class ControlledReaderImageLoader: ReaderImageLoading {
     private(set) var startedURLs: [URL] = []
     private(set) var activeURLs = Set<URL>()
     private(set) var cancelledURLs: [URL] = []
+    private(set) var retriedURLs: [URL] = []
     private var continuations: [URL: CheckedContinuation<UIImage, any Error>] = [:]
 
     func load(_ url: URL) async throws -> UIImage {
@@ -18,7 +19,8 @@ private final class ControlledReaderImageLoader: ReaderImageLoading {
     }
 
     func retry(_ url: URL) async throws -> UIImage {
-        try await load(url)
+        retriedURLs.append(url)
+        return try await load(url)
     }
 
     func cancelLoading(for url: URL) {
@@ -33,10 +35,44 @@ private final class ControlledReaderImageLoader: ReaderImageLoading {
         activeURLs.remove(url)
         continuations.removeValue(forKey: url)?.resume(returning: UIImage())
     }
+
+    func fail(_ url: URL) {
+        activeURLs.remove(url)
+        continuations.removeValue(forKey: url)?.resume(throwing: APIError.connection("offline"))
+    }
 }
 
 @MainActor
 struct ReaderImageModelTests {
+    @Test func individualFailurePreservesSurroundingImagesAndRepeatedRetryStartsOnce() async throws {
+        let urls = try (0..<3).map { index in
+            try #require(URL(string: "https://example.com/\(index).jpg"))
+        }
+        let loader = ControlledReaderImageLoader()
+        let model = ReaderImageModel(urls: urls, loader: loader)
+
+        model.updateVisibleIndex(0)
+        await waitUntil { loader.activeURLs.count == 3 }
+        loader.finish(urls[0])
+        loader.fail(urls[1])
+        loader.finish(urls[2])
+        await waitUntil {
+            Self.isLoaded(model.state(at: 0))
+                && Self.isFailed(model.state(at: 1))
+                && Self.isLoaded(model.state(at: 2))
+        }
+
+        model.retry(1)
+        model.retry(1)
+        await waitUntil { loader.retriedURLs.count == 1 }
+        loader.finish(urls[1])
+        await waitUntil { Self.isLoaded(model.state(at: 1)) }
+
+        #expect(loader.retriedURLs == [urls[1]])
+        #expect(Self.isLoaded(model.state(at: 0)))
+        #expect(Self.isLoaded(model.state(at: 2)))
+    }
+
     @Test func prioritizesVisibleImageAndOnlyPrefetchesBoundedLookAheadRange() async throws {
         let urls = try (0..<8).map { index in
             try #require(URL(string: "https://example.com/\(index).jpg"))
@@ -95,5 +131,15 @@ struct ReaderImageModelTests {
             await Task.yield()
         }
         Issue.record("等待异步图片调度状态超时")
+    }
+
+    private static func isLoaded(_ state: ReaderImageModel.State) -> Bool {
+        if case .loaded = state { return true }
+        return false
+    }
+
+    private static func isFailed(_ state: ReaderImageModel.State) -> Bool {
+        if case .failed = state { return true }
+        return false
     }
 }
