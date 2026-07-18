@@ -72,8 +72,8 @@
 
 - [x] 8.1 Wire account, discovery, details, reader, and favorites into the SwiftUI navigation structure
 - [x] 8.2 Verify deep navigation cancellation and ensure dismissed features cannot receive late state updates
-- [ ] 8.3 Run all unit, fixture, repository, and UI tests and record the results
-- [ ] 8.4 Run a clean iOS build for the selected simulator and physical device targets
+- [x] 8.3 Run all unit, fixture, repository, and UI tests and record the results
+- [x] 8.4 Run a clean iOS build for the selected simulator and physical device targets
 - [ ] 8.5 Perform manual end-to-end validation for login, restart, browse, search, read, favorite, unfavorite, logout, offline, and expired-session flows
-- [ ] 8.6 Inspect logs and repository changes for credentials, tokens, signing secrets, generated artifacts, debug code, and unrelated modifications
-- [ ] 8.7 Update affected project context, architecture, decisions, TODO, and session documentation with only verified outcomes
+- [x] 8.6 Inspect logs and repository changes for credentials, tokens, signing secrets, generated artifacts, debug code, and unrelated modifications
+- [x] 8.7 Update affected project context, architecture, decisions, TODO, and session documentation with only verified outcomes

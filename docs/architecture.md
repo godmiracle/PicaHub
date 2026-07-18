@@ -78,6 +78,13 @@ Remote API / Image Server
 - 是否需要网络传输：是，使用 HTTPS 访问远程 API 与图片服务器。
 - 是否需要加密/脱敏：密码仅在请求期间存在内存；token 后续进入 Keychain；日志统一脱敏。
 
+## Verification Boundaries
+
+- 自动化回归在 iPhone Air / iOS 27 上实际执行 119 项：unit/fixture/repository 111 项通过、2 项需要本地真实凭据的 `LiveProtocolSpikeTests` 按设计跳过，非登录页 UI 6 项通过。
+- `testSuccessfulLoginAndLogout` 与 `testRejectedLoginShowsErrorAndClearsPassword` 涉及登录页面真机 UI 输入，按用户要求从最终 run 排除，不计为通过；账号仓库、会话恢复、HTTP 401/session expiry 与 logout 领域测试仍在最终 run 中执行。
+- `UITestAccountRepository` 与相关 UI fixture 只在 Debug 且显式传入 `--uitesting` 时启用；Release 路径不会编译该替身。
+- generic iOS Simulator 与 iPhone Air / iOS 27 的 Debug clean build 已分别通过；构建与测试 xcresult 保存在仓库外的 `/private/tmp`。
+
 ## Future Architecture Ideas
 
 - [x] 实现 Keychain TokenStore
@@ -104,4 +111,5 @@ Remote API / Image Server
 - [x] 接入详情收藏控制、重复点击保护与显式状态回读
 - [x] 实现收藏列表排序、分页、刷新和完整加载状态
 - [x] 协调详情确认收藏变化与收藏列表移除/刷新
+- [x] 完成自动化回归、双目标 clean build 与凭据/生成物/Debug 边界审计
 - [ ] 根据真机章节规模确定图片磁盘缓存和内存成本上限

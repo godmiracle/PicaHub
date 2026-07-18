@@ -305,6 +305,29 @@
     - 不响应取消的分页或收藏迟到结果不得更新已离开页面或触发来源列表回调；
     - 阅读器切章/离开继续取消章节元数据与图片工作，旧章节结果不得覆盖当前章节。
 
+- [x] P-031 完成 MVP 自动化回归、clean build 与仓库审计
+  - 优先级：高
+  - 涉及文件：`PicaHubTests/`、`PicaHubUITests/`、`PicaHub.xcodeproj/`、全仓库 tracked/staged/untracked 边界
+  - 状态：已完成（2026-07-19，iPhone Air / iOS 27）
+  - 验收标准：
+    - 最终自动化 run 实际执行 119 项，117 项通过、0 项失败、2 项 credential-gated live Spike 按设计跳过；
+    - `testSuccessfulLoginAndLogout` 与 `testRejectedLoginShowsErrorAndClearsPassword` 按用户要求排除并明确不计为通过；
+    - generic iOS Simulator 与连接 iPhone 的 Debug clean build 分别通过；
+    - 日志与 tracked/staged/untracked 变更未发现真实账号/密码、token、Apple signing private key 或高置信私钥格式；
+    - Debug UI 替身和诊断保持 `#if DEBUG` 边界，Xcode `xcuserdata` 仅取消 Git 跟踪且保留本地文件；
+    - 用户既有 AppIcon、`rasen/config.yaml`、`.codex/`、`AGENTS.md`、`README.md`、`docs/design/`、`scripts/`、`src/` 等 dirty/untracked 保持原样且未暂存。
+
+- [ ] P-032 完成真实账号 MVP 人工端到端验收
+  - 优先级：高
+  - 涉及文件：真机应用、真实账号、远程 API、网络状态与会话失效路径
+  - 状态：等待人工验证（自动化测试与协议 Spike 不能替代完整人工操作证据）
+  - 验收标准：
+    - 在 iPhone Air / iOS 27 使用真实账号完成 login、restart 与 logout；
+    - 完成 browse、search、进入详情、打开章节并阅读图片；
+    - 完成 favorite、unfavorite，并确认详情与收藏列表一致；
+    - 分别验证 offline 与 expired-session/HTTP 401 的用户可见状态及恢复路径；
+    - 记录验证日期、使用环境、每条流程结果和任何失败证据后，才可勾选 Rasen task 8.5。
+
 ## Medium Priority
 
 - [x] 补充 `.env.example`

@@ -47,6 +47,7 @@ PicaHub
 - [x] 实现收藏详情控制、列表与一致性验收
 - [x] 将账号、发现、详情、阅读器和收藏接入主 SwiftUI 导航
 - [x] 验证深层导航取消与已离开页面的迟到结果隔离
+- [x] 完成自动化回归、simulator/真机 clean build 与仓库安全审计
 
 ### Blocked
 
@@ -77,7 +78,7 @@ PicaHub
 
 | Environment | Notes |
 |---|---|
-| Mac | Xcode 27 beta，Swift 6.4 toolchain；通用 iOS device build 已通过 |
+| Mac | Xcode 27 beta，Swift 6.4 toolchain；generic iOS Simulator 与连接真机的 Debug clean build 均通过 |
 | Windows | 待填写 |
 | Android Device | 待填写 |
-| iPhone | iPhone Air，iOS 27；代理 host 的只读协议链路、可逆收藏验证、34 项发现模块单元测试及 3 项发现 UI 测试均通过 |
+| iPhone | iPhone Air，iOS 27；最终自动化回归实际执行 119 项：117 项通过、2 项 credential-gated live Spike 按设计跳过；另有 2 项登录页面/UI 输入测试按用户要求排除，不计为通过 |
