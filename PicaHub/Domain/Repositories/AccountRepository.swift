@@ -6,24 +6,55 @@ protocol AccountAuthenticating: Sendable {
 
 protocol AccountRepository: Sendable {
     func sessionState() async -> AccountSessionState
+    func sessionStateUpdates() async -> AsyncStream<AccountSessionState>
     func authenticationToken() async -> String?
     @discardableResult func restoreSession() async -> AccountSessionState
     @discardableResult func authenticate(email: String, password: String) async -> AccountSessionState
+    @discardableResult func logout() async -> AccountSessionState
+    @discardableResult func invalidateSession() async -> AccountSessionState
+}
+
+extension AccountRepository {
+    func sessionStateUpdates() async -> AsyncStream<AccountSessionState> {
+        let currentState = await sessionState()
+        return AsyncStream { continuation in
+            continuation.yield(currentState)
+            continuation.finish()
+        }
+    }
 }
 
 actor DefaultAccountRepository<Store: TokenStore, Authenticator: AccountAuthenticating>: AccountRepository {
     private let tokenStore: Store
     private let authenticator: Authenticator
+    private let cancelAuthenticatedRequests: @Sendable () async -> Void
     private var state: AccountSessionState = .restoring
     private var token: String?
+    private var stateContinuations: [UUID: AsyncStream<AccountSessionState>.Continuation] = [:]
 
-    init(tokenStore: Store, authenticator: Authenticator) {
+    init(
+        tokenStore: Store,
+        authenticator: Authenticator,
+        cancelAuthenticatedRequests: @escaping @Sendable () async -> Void = {}
+    ) {
         self.tokenStore = tokenStore
         self.authenticator = authenticator
+        self.cancelAuthenticatedRequests = cancelAuthenticatedRequests
     }
 
     func sessionState() -> AccountSessionState {
         state
+    }
+
+    func sessionStateUpdates() async -> AsyncStream<AccountSessionState> {
+        let identifier = UUID()
+        return AsyncStream { continuation in
+            stateContinuations[identifier] = continuation
+            continuation.yield(state)
+            continuation.onTermination = { [weak self] _ in
+                Task { await self?.removeStateContinuation(identifier) }
+            }
+        }
     }
 
     func authenticationToken() -> String? {
@@ -32,13 +63,13 @@ actor DefaultAccountRepository<Store: TokenStore, Authenticator: AccountAuthenti
 
     @discardableResult
     func restoreSession() -> AccountSessionState {
-        state = .restoring
+        transition(to: .restoring)
         do {
             token = try tokenStore.loadToken()
-            state = token == nil ? .unauthenticated : .authenticated
+            transition(to: token == nil ? .unauthenticated : .authenticated)
         } catch {
             token = nil
-            state = .failed(failure(for: error, email: nil))
+            transition(to: .failed(failure(for: error, email: nil)))
         }
         return state
     }
@@ -51,18 +82,18 @@ actor DefaultAccountRepository<Store: TokenStore, Authenticator: AccountAuthenti
 
         let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalizedEmail.isEmpty, !password.isEmpty else {
-            state = .failed(
+            transition(to: .failed(
                 AccountSessionFailure(
                     kind: .validation,
                     message: "请输入邮箱和密码",
                     email: normalizedEmail.isEmpty ? nil : normalizedEmail,
                     isRetryable: false
                 )
-            )
+            ))
             return state
         }
 
-        state = .authenticating(email: normalizedEmail)
+        transition(to: .authenticating(email: normalizedEmail))
         do {
             let receivedToken = try await authenticator.login(
                 email: normalizedEmail,
@@ -73,12 +104,46 @@ actor DefaultAccountRepository<Store: TokenStore, Authenticator: AccountAuthenti
             }
             try tokenStore.saveToken(receivedToken)
             token = receivedToken
-            state = .authenticated
+            transition(to: .authenticated)
         } catch {
             token = nil
-            state = .failed(failure(for: error, email: normalizedEmail))
+            transition(to: .failed(failure(for: error, email: normalizedEmail)))
         }
         return state
+    }
+
+    @discardableResult
+    func logout() async -> AccountSessionState {
+        await clearSession()
+    }
+
+    @discardableResult
+    func invalidateSession() async -> AccountSessionState {
+        guard token != nil || state != .unauthenticated else {
+            return state
+        }
+        return await clearSession()
+    }
+
+    private func clearSession() async -> AccountSessionState {
+        token = nil
+        transition(to: .unauthenticated)
+        await cancelAuthenticatedRequests()
+        do {
+            try tokenStore.deleteToken()
+        } catch {
+            transition(to: .failed(failure(for: error, email: nil)))
+        }
+        return state
+    }
+
+    private func transition(to newState: AccountSessionState) {
+        state = newState
+        stateContinuations.values.forEach { $0.yield(newState) }
+    }
+
+    private func removeStateContinuation(_ identifier: UUID) {
+        stateContinuations[identifier] = nil
     }
 
     private func failure(for error: Error, email: String?) -> AccountSessionFailure {

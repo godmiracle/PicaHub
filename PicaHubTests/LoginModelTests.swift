@@ -27,6 +27,9 @@ private actor LoginRepositoryStub: AccountRepository {
         return await withCheckedContinuation { continuation = $0 }
     }
 
+    func logout() -> AccountSessionState { .unauthenticated }
+    func invalidateSession() -> AccountSessionState { .unauthenticated }
+
     func completeAuthentication() {
         continuation?.resume(returning: result)
         continuation = nil

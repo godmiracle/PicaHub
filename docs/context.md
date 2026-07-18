@@ -19,13 +19,13 @@ PicaHub
 - [x] 初始化独立 SwiftUI 工程和测试 target
 - [x] 建立 Rasen proposal、design、capability specs 和 tasks
 - [x] 实现并编译协议客户端基础、DTO、签名和脱敏日志
-- [x] 在已连接 iPhone 上通过 43 项协议、Keychain、账号状态和根路由单元测试
+- [x] 在已连接 iPhone 上通过 48 项协议、Keychain、账号状态、请求取消和根路由单元测试
 - [x] 使用真实账号通过只读协议链路与可逆收藏写入、回读、恢复验证
 - [x] 完成并解除 Rasen 协议 Spike 门禁
 
 ### In Progress
 
-- [ ] 实现集中注销与 HTTP 401 会话失效
+- [ ] 完成账号会话 UI 自动化与端到端验证
 
 ### Blocked
 

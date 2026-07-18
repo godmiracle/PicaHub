@@ -6,7 +6,9 @@ private final class TokenStoreStub: TokenStore, @unchecked Sendable {
     var storedToken: String?
     var loadError: TokenStoreError?
     var saveError: TokenStoreError?
+    var deleteError: TokenStoreError?
     private(set) var savedTokens: [String] = []
+    private(set) var deleteCallCount = 0
 
     func loadToken() throws -> String? {
         if let loadError { throw loadError }
@@ -20,6 +22,8 @@ private final class TokenStoreStub: TokenStore, @unchecked Sendable {
     }
 
     func deleteToken() throws {
+        deleteCallCount += 1
+        if let deleteError { throw deleteError }
         storedToken = nil
     }
 }
@@ -147,6 +151,59 @@ struct AccountRepositoryTests {
         #expect(await firstLogin.value == .authenticated)
     }
 
+    @Test func logoutCancelsRequestsClearsTokenAndDeletesKeychain() async {
+        let store = TokenStoreStub()
+        store.storedToken = "stored-token"
+        let cancellation = CancellationRecorder()
+        let repository = DefaultAccountRepository(
+            tokenStore: store,
+            authenticator: AuthenticationStub(result: .success("token")),
+            cancelAuthenticatedRequests: { await cancellation.record() }
+        )
+        _ = await repository.restoreSession()
+
+        let state = await repository.logout()
+
+        #expect(state == .unauthenticated)
+        #expect(await repository.authenticationToken() == nil)
+        #expect(store.deleteCallCount == 1)
+        #expect(await cancellation.count == 1)
+    }
+
+    @Test func repeatedInvalidationClearsSessionOnlyOnce() async {
+        let store = TokenStoreStub()
+        store.storedToken = "stored-token"
+        let cancellation = CancellationRecorder()
+        let repository = DefaultAccountRepository(
+            tokenStore: store,
+            authenticator: AuthenticationStub(result: .success("token")),
+            cancelAuthenticatedRequests: { await cancellation.record() }
+        )
+        _ = await repository.restoreSession()
+
+        _ = await repository.invalidateSession()
+        let repeatedState = await repository.invalidateSession()
+
+        #expect(repeatedState == .unauthenticated)
+        #expect(store.deleteCallCount == 1)
+        #expect(await cancellation.count == 1)
+    }
+
+    @Test func sessionUpdatesPublishRestorationAndInvalidation() async {
+        let store = TokenStoreStub()
+        store.storedToken = "stored-token"
+        let repository = makeRepository(store: store)
+        let updates = await repository.sessionStateUpdates()
+        var iterator = updates.makeAsyncIterator()
+
+        #expect(await iterator.next() == .restoring)
+        _ = await repository.restoreSession()
+        #expect(await iterator.next() == .restoring)
+        #expect(await iterator.next() == .authenticated)
+        _ = await repository.invalidateSession()
+        #expect(await iterator.next() == .unauthenticated)
+    }
+
     private func makeRepository(
         store: TokenStoreStub = TokenStoreStub(),
         result: Result<String, APIError> = .success("token")
@@ -155,5 +212,13 @@ struct AccountRepositoryTests {
             tokenStore: store,
             authenticator: AuthenticationStub(result: result)
         )
+    }
+}
+
+private actor CancellationRecorder {
+    private(set) var count = 0
+
+    func record() {
+        count += 1
     }
 }

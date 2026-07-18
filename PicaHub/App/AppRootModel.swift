@@ -21,7 +21,20 @@ final class AppRootModel {
         isRestoring = false
     }
 
+    func start() async {
+        let updates = await repository.sessionStateUpdates()
+        await restoreSession()
+        for await updatedState in updates {
+            guard !Task.isCancelled else { return }
+            state = updatedState
+        }
+    }
+
     func synchronizeAfterLogin() async {
         state = await repository.sessionState()
+    }
+
+    func logout() async {
+        state = await repository.logout()
     }
 }

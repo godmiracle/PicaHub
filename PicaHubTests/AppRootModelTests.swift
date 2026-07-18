@@ -4,21 +4,41 @@ import Testing
 private actor RootRepositoryStub: AccountRepository {
     var state: AccountSessionState
     private(set) var restoreCallCount = 0
+    private var continuation: AsyncStream<AccountSessionState>.Continuation?
 
     init(state: AccountSessionState) {
         self.state = state
     }
 
     func sessionState() -> AccountSessionState { state }
+    func sessionStateUpdates() async -> AsyncStream<AccountSessionState> {
+        AsyncStream { continuation in
+            self.continuation = continuation
+            continuation.yield(state)
+        }
+    }
     func authenticationToken() -> String? { nil }
 
     func restoreSession() -> AccountSessionState {
         restoreCallCount += 1
+        continuation?.yield(state)
         return state
     }
 
     func authenticate(email: String, password: String) -> AccountSessionState {
         state
+    }
+
+    func logout() -> AccountSessionState {
+        state = .unauthenticated
+        continuation?.yield(state)
+        return state
+    }
+
+    func invalidateSession() -> AccountSessionState {
+        state = .unauthenticated
+        continuation?.yield(state)
+        return state
     }
 }
 
@@ -72,5 +92,23 @@ struct AppRootModelTests {
         await model.synchronizeAfterLogin()
 
         #expect(model.state == .authenticated)
+    }
+
+    @Test func sessionInvalidationAutomaticallyRoutesBackToLogin() async {
+        let repository = RootRepositoryStub(state: .authenticated)
+        let model = AppRootModel(repository: repository)
+        let observation = Task { await model.start() }
+
+        while model.state != .authenticated {
+            await Task.yield()
+        }
+        _ = await repository.invalidateSession()
+        while model.state != .unauthenticated {
+            await Task.yield()
+        }
+
+        #expect(model.state == .unauthenticated)
+        observation.cancel()
+        await observation.value
     }
 }

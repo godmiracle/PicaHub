@@ -3,6 +3,7 @@ import SwiftUI
 struct AppRootView: View {
     private let repository: any AccountRepository
     @State private var model: AppRootModel
+    @State private var confirmsLogout = false
 
     init(repository: any AccountRepository) {
         self.repository = repository
@@ -25,9 +26,7 @@ struct AppRootView: View {
             }
         }
         .task {
-            if model.state == .restoring {
-                await model.restoreSession()
-            }
+            await model.start()
         }
     }
 
@@ -57,12 +56,24 @@ struct AppRootView: View {
     }
 
     private var authenticatedPlaceholder: some View {
-        ContentUnavailableView(
-            "登录成功",
-            systemImage: "checkmark.shield.fill",
-            description: Text("账号会话已恢复，漫画发现功能将在下一阶段接入。")
-        )
+        ContentUnavailableView {
+            Label("登录成功", systemImage: "checkmark.shield.fill")
+        } description: {
+            Text("账号会话已恢复，漫画发现功能将在下一阶段接入。")
+        } actions: {
+            Button("退出登录", role: .destructive) {
+                confirmsLogout = true
+            }
+        }
         .accessibilityIdentifier("session-authenticated")
+        .confirmationDialog("确认退出登录？", isPresented: $confirmsLogout) {
+            Button("退出登录", role: .destructive) {
+                Task { await model.logout() }
+            }
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("本机 Keychain 中的登录状态将被清除。")
+        }
     }
 
     private func restorationFailureView(_ failure: AccountSessionFailure) -> some View {

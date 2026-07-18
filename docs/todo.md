@@ -55,6 +55,16 @@
     - Keychain 恢复失败显示错误和重试；
     - 应用依赖由组合根统一创建；
     - 启动恢复不读取或持久化密码。
+- [x] P-006 实现集中注销和 HTTP 401 会话失效
+  - 优先级：高
+  - 涉及文件：`AuthenticatedRequestController.swift`、`APIClient.swift`、`AccountRepository.swift`、`AppRootModel.swift`
+  - 状态：已完成（2026-07-19，取消、幂等失效和根路由状态流测试通过）
+  - 验收标准：
+    - 所有带 token 的活动请求可集中取消；
+    - logout 清除内存 token、Keychain token 并返回登录；
+    - 首个 HTTP 401 执行同一失效路径；
+    - 重复 401 不重复删除或导航；
+    - 会话状态持续推送到根路由。
 
 ## Medium Priority
 

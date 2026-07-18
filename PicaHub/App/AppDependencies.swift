@@ -7,12 +7,22 @@ typealias ProductionAccountRepository = DefaultAccountRepository<
 
 struct AppDependencies {
     let accountRepository: ProductionAccountRepository
+    let apiClient: APIClient
 
     init(environment: APIEnvironment = .proxy) {
         let loginClient = APIClient(environment: environment)
-        accountRepository = DefaultAccountRepository(
+        let authenticatedRequests = AuthenticatedRequestController()
+        let repository = DefaultAccountRepository(
             tokenStore: KeychainTokenStore(),
-            authenticator: APIAccountAuthenticator(client: loginClient)
+            authenticator: APIAccountAuthenticator(client: loginClient),
+            cancelAuthenticatedRequests: { await authenticatedRequests.cancelAll() }
+        )
+        accountRepository = repository
+        apiClient = APIClient(
+            environment: environment,
+            tokenProvider: { await repository.authenticationToken() },
+            sessionExpiredHandler: { await repository.invalidateSession() },
+            authenticatedRequests: authenticatedRequests
         )
     }
 }

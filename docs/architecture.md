@@ -40,6 +40,7 @@ Remote API / Image Server
 3. URLSessionTransport 返回 HTTP 响应，APIClient 解码统一 envelope 并映射网络、HTTP、401、业务及解码错误。
 4. Repository 将 API DTO 转换为 Feature 可用状态；UI 不直接构造请求或读取凭据。
 5. AppRoot 启动时保持 restoring 页面，读取 Keychain 后再选择登录或已认证内容，避免受保护界面闪现。
+6. 带 token 的请求由共享 AuthenticatedRequestController 登记；logout 或首个 401 取消全部登记请求并通过持续状态流通知 AppRoot 返回登录。
 
 ## External Dependencies
 
@@ -62,6 +63,7 @@ Remote API / Image Server
 - [x] 实现 AccountRepository 和会话状态机
 - [x] 实现登录 Feature Model 与 SwiftUI 页面
 - [x] 接入应用启动恢复和根路由
-- [ ] 接入集中注销和 HTTP 401 会话失效
+- [x] 接入集中注销和 HTTP 401 会话失效
+- [ ] 增加账号 UI 自动化与端到端重启测试
 - [ ] 建立两级图片缓存与受控预取
 - [ ] 根据真机章节规模确定图片磁盘缓存和内存成本上限

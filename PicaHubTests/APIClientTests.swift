@@ -184,6 +184,33 @@ struct APIClientTests {
         #expect(await attempts.value == 1)
     }
 
+    @Test func centralizedCancellationStopsAuthenticatedRequest() async throws {
+        let controller = AuthenticatedRequestController()
+        let client = APIClient(
+            environment: .proxy,
+            transport: StubTransport { _ in
+                try await Task.sleep(for: .seconds(30))
+                throw APIError.invalidResponse
+            },
+            tokenProvider: { "token" },
+            maximumReadAttempts: 1,
+            authenticatedRequests: controller
+        )
+        let request = Task {
+            try await client.send(PicaEndpoints.categories)
+        }
+
+        while await controller.activeRequestCount == 0 {
+            await Task.yield()
+        }
+        await controller.cancelAll()
+
+        await #expect(throws: APIError.cancelled) {
+            try await request.value
+        }
+        #expect(await controller.activeRequestCount == 0)
+    }
+
     private static func response(url: URL, statusCode: Int) -> HTTPURLResponse {
         HTTPURLResponse(
             url: url,

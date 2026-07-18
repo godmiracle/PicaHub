@@ -13,6 +13,7 @@ actor APIClient {
     private let timestampProvider: TimestampProvider
     private let decoder: JSONDecoder
     private let maximumReadAttempts: Int
+    private let authenticatedRequests: AuthenticatedRequestController
 
     init(
         environment: APIEnvironment,
@@ -23,7 +24,8 @@ actor APIClient {
             String(Int(Date().timeIntervalSince1970))
         },
         decoder: JSONDecoder = JSONDecoder(),
-        maximumReadAttempts: Int = 3
+        maximumReadAttempts: Int = 3,
+        authenticatedRequests: AuthenticatedRequestController = AuthenticatedRequestController()
     ) {
         self.environment = environment
         self.transport = transport
@@ -33,6 +35,7 @@ actor APIClient {
         self.timestampProvider = timestampProvider
         self.decoder = decoder
         self.maximumReadAttempts = max(1, maximumReadAttempts)
+        self.authenticatedRequests = authenticatedRequests
     }
 
     func send<Response: Decodable & Sendable>(
@@ -44,7 +47,10 @@ actor APIClient {
 
         for attempt in 1...allowedAttempts {
             do {
-                let (data, response) = try await transport.data(for: request)
+                let (data, response) = try await load(
+                    request,
+                    requiresAuthentication: endpoint.requiresAuthentication
+                )
                 AppDiagnostics.requestCompleted(
                     method: endpoint.method,
                     path: endpoint.path,
@@ -77,6 +83,10 @@ actor APIClient {
         }
 
         throw lastError ?? APIError.invalidResponse
+    }
+
+    func cancelAuthenticatedRequests() async {
+        await authenticatedRequests.cancelAll()
     }
 
     func makeRequest<Response: Decodable & Sendable>(
@@ -134,6 +144,19 @@ actor APIClient {
             throw APIError.decoding(DecodingFailureDescription.describe(error))
         } catch {
             throw APIError.decoding(String(describing: error))
+        }
+    }
+
+    private func load(
+        _ request: URLRequest,
+        requiresAuthentication: Bool
+    ) async throws -> (Data, HTTPURLResponse) {
+        guard requiresAuthentication else {
+            return try await transport.data(for: request)
+        }
+        let transport = transport
+        return try await authenticatedRequests.perform {
+            try await transport.data(for: request)
         }
     }
 
