@@ -32,7 +32,8 @@ PicaHub
 - [x] 实现可取消分页搜索
 - [x] 实现漫画详情与章节独立加载
 - [x] 实现完整多页章节合并、去重与排序
-- [ ] 补齐发现模块边界场景测试
+- [x] 补齐发现模块边界场景测试
+- [ ] 实现章节图片完整分页读取
 
 ### Blocked
 
@@ -66,4 +67,4 @@ PicaHub
 | Mac | Xcode 27 beta，Swift 6.4 toolchain；通用 iOS device build 已通过 |
 | Windows | 待填写 |
 | Android Device | 待填写 |
-| iPhone | iPhone Air，iOS 27；代理 host 的只读协议链路、可逆收藏验证及 18 项离线单元测试均通过 |
+| iPhone | iPhone Air，iOS 27；代理 host 的只读协议链路、可逆收藏验证、34 项发现模块单元测试及 3 项发现 UI 测试均通过 |

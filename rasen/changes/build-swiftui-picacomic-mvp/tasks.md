@@ -47,7 +47,7 @@
 - [x] 5.4 Implement cancellable paginated search with empty-keyword validation and no-results state
 - [x] 5.5 Implement comic details with independent detail and chapter loading states
 - [x] 5.6 Implement complete multi-page chapter retrieval with verified ordering and duplicate prevention
-- [ ] 5.7 Add discovery repository and UI tests covering pagination, refresh retention, cancellation, empty data, partial failure, and missing optional fields
+- [x] 5.7 Add discovery repository and UI tests covering pagination, refresh retention, cancellation, empty data, partial failure, and missing optional fields
 
 ## 6. Online Reader
 
