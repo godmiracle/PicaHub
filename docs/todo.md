@@ -275,6 +275,16 @@
     - 服务端外部变化通过收藏列表下拉刷新采用最新完整第一页；
     - 一致性协调不直接调用 toggle，也不自动重试收藏写操作。
 
+- [x] P-028 完成在线收藏综合专项验收
+  - 优先级：高
+  - 涉及文件：`PicaHubTests/APIFavoriteRepositoryTests.swift`、`PicaHubTests/ComicDetailsModelTests.swift`、`PicaHubTests/FavoritesModelTests.swift`
+  - 状态：已完成（2026-07-19，18 项收藏专项测试在 iPhone Air / iOS 27 通过）
+  - 验收标准：
+    - 覆盖收藏与取消收藏的服务端详情回读确认，并避免目标状态已满足时重复 toggle；
+    - 覆盖 mutation 模糊失败保留旧状态、显式回读及重复点击只启动一次 mutation；
+    - 覆盖分页排序、去重、边界、确认取消后的列表移除及外部变化刷新替换；
+    - 覆盖收藏请求 HTTP 401 映射会话失效并触发集中失效处理。
+
 ## Medium Priority
 
 - [x] 补充 `.env.example`

@@ -108,6 +108,33 @@ struct FavoritesModelTests {
         #expect(model.refreshErrorMessage == APIError.timedOut.userMessage)
     }
 
+    @Test func refreshAdoptsExternalFavoriteChangesFromServer() async {
+        let removedExternally = Self.comic("removed-externally")
+        let retained = Self.comic("retained")
+        let addedExternally = Self.comic("added-externally")
+        let repository = FavoriteListRepositoryStub(
+            results: [
+                .success(Self.page(number: 1, pages: 1, comics: [removedExternally, retained])),
+                .success(Self.page(number: 1, pages: 1, comics: [retained, addedExternally])),
+            ]
+        )
+        let model = FavoritesModel(repository: repository)
+        await model.loadIfNeeded()
+
+        await model.refresh()
+
+        guard case let .content(content) = model.state else {
+            Issue.record("Expected refreshed favorite content")
+            return
+        }
+        #expect(content.comics == [retained, addedExternally])
+        #expect(model.refreshErrorMessage == nil)
+        #expect(await repository.requests == [
+            FavoriteListRequest(sort: .newest, page: 1),
+            FavoriteListRequest(sort: .newest, page: 1),
+        ])
+    }
+
     @Test func emptyAndInitialFailureUseDedicatedStates() async {
         let emptyRepository = FavoriteListRepositoryStub(
             results: [.success(Self.page(number: 1, pages: 0, comics: []))]

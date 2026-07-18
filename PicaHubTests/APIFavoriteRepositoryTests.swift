@@ -36,6 +36,14 @@ private actor FavoriteServerStub {
     }
 }
 
+private actor FavoriteSessionExpiryRecorder {
+    private(set) var count = 0
+
+    func record() {
+        count += 1
+    }
+}
+
 struct APIFavoriteRepositoryTests {
     @Test func fetchesDetailFavoriteState() async throws {
         let server = FavoriteServerStub(isFavorite: true)
@@ -45,13 +53,15 @@ struct APIFavoriteRepositoryTests {
         #expect(await server.mutationCount == 0)
     }
 
-    @Test func mutationIsConfirmedByFreshDetailStateAndAvoidsUnneededToggle() async throws {
+    @Test func addAndRemoveAreConfirmedByFreshDetailStateAndAvoidUnneededToggle() async throws {
         let server = FavoriteServerStub(isFavorite: false)
         let repository = makeRepository(server: server)
 
         #expect(try await repository.setFavorite(comicID: "comic", isFavorite: true))
         #expect(try await repository.setFavorite(comicID: "comic", isFavorite: true))
-        #expect(await server.mutationCount == 1)
+        #expect(try await !repository.setFavorite(comicID: "comic", isFavorite: false))
+        #expect(try await !repository.setFavorite(comicID: "comic", isFavorite: false))
+        #expect(await server.mutationCount == 2)
     }
 
     @Test func fetchesSelectedFavoriteSortAndPage() async throws {
@@ -71,6 +81,33 @@ struct APIFavoriteRepositoryTests {
 
         #expect(page.page == 2)
         #expect(page.pages == 4)
+    }
+
+    @Test func favoriteRequestPropagatesSessionExpiryAndTriggersInvalidation() async {
+        let recorder = FavoriteSessionExpiryRecorder()
+        let client = APIClient(
+            environment: .proxy,
+            transport: StubTransport { request in
+                (
+                    Data(),
+                    HTTPURLResponse(
+                        url: request.url!,
+                        statusCode: 401,
+                        httpVersion: "HTTP/1.1",
+                        headerFields: nil
+                    )!
+                )
+            },
+            tokenProvider: { "expired-token" },
+            sessionExpiredHandler: { await recorder.record() },
+            maximumReadAttempts: 1
+        )
+        let repository = APIFavoriteRepository(client: client)
+
+        await #expect(throws: APIError.sessionExpired) {
+            try await repository.fetchFavorites(sort: .newest, page: 1)
+        }
+        #expect(await recorder.count == 1)
     }
 
     private func makeRepository(server: FavoriteServerStub) -> APIFavoriteRepository {

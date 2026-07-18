@@ -66,7 +66,7 @@
 - [x] 7.2 Implement the detail favorite control with in-flight duplicate prevention and confirmed-state error recovery
 - [x] 7.3 Implement the favorites screen with sort, pagination, empty, error, retry, and refresh states
 - [x] 7.4 Reconcile confirmed favorite changes between comic details and the favorites list
-- [ ] 7.5 Add favorite tests for add, remove, ambiguous failure, repeated taps, pagination, external refresh changes, and session expiry
+- [x] 7.5 Add favorite tests for add, remove, ambiguous failure, repeated taps, pagination, external refresh changes, and session expiry
 
 ## 8. Integration and Verification
 
