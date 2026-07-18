@@ -6,6 +6,7 @@ import Observation
 final class ReaderChapterModel {
     private(set) var currentChapter: Chapter
     private(set) var images: [ChapterImage] = []
+    private(set) var currentImageIndex = 0
     private(set) var isLoading = false
     private(set) var errorMessage: String?
 
@@ -22,26 +23,48 @@ final class ReaderChapterModel {
     @ObservationIgnored private let comicID: String
     @ObservationIgnored private let chapters: [Chapter]
     @ObservationIgnored private let repository: any ChapterImageRepository
+    @ObservationIgnored private let progressStore: any ReadingProgressStore
     @ObservationIgnored private let cancelImageWork: @MainActor () -> Void
     @ObservationIgnored private var loadTask: Task<Void, Never>?
     @ObservationIgnored private var loadGeneration = 0
+    @ObservationIgnored private var restoredImageIndex: Int?
 
     init(
         comicID: String,
         chapters: [Chapter],
         initialChapter: Chapter,
         repository: any ChapterImageRepository,
+        progressStore: any ReadingProgressStore = UserDefaultsReadingProgressStore(),
         cancelImageWork: @escaping @MainActor () -> Void = {}
     ) {
         self.comicID = comicID
         self.chapters = chapters
         self.currentChapter = initialChapter
         self.repository = repository
+        self.progressStore = progressStore
         self.cancelImageWork = cancelImageWork
     }
 
     func loadCurrentChapter() {
         startLoadingCurrentChapter()
+    }
+
+    func restoreProgressAndLoad() async {
+        if let progress = await progressStore.loadProgress(for: comicID) {
+            if let savedChapter = chapters.first(where: { $0.order == progress.chapterOrder }) {
+                currentChapter = savedChapter
+                restoredImageIndex = max(0, progress.imageIndex)
+            } else {
+                restoredImageIndex = 0
+            }
+        }
+        startLoadingCurrentChapter()
+    }
+
+    func updateVisibleImageIndex(_ index: Int) {
+        guard images.indices.contains(index), index != currentImageIndex else { return }
+        currentImageIndex = index
+        persistCurrentProgress()
     }
 
     @discardableResult
@@ -74,6 +97,8 @@ final class ReaderChapterModel {
         guard chapter.id != currentChapter.id else { return }
         currentChapter = chapter
         images = []
+        currentImageIndex = 0
+        restoredImageIndex = nil
         errorMessage = nil
         startLoadingCurrentChapter()
     }
@@ -97,8 +122,14 @@ final class ReaderChapterModel {
                 try Task.checkCancellation()
                 guard generation == loadGeneration, chapter.id == currentChapter.id else { return }
                 self.images = images
+                let requestedIndex = restoredImageIndex ?? 0
+                currentImageIndex = images.isEmpty
+                    ? 0
+                    : min(max(0, requestedIndex), images.count - 1)
+                restoredImageIndex = nil
                 isLoading = false
                 loadTask = nil
+                persistCurrentProgress()
             } catch is CancellationError {
                 finishCancellation(generation: generation)
             } catch {
@@ -118,5 +149,13 @@ final class ReaderChapterModel {
 
     private static func message(for error: Error) -> String {
         (error as? APIError)?.userMessage ?? "章节加载失败，请稍后重试"
+    }
+
+    private func persistCurrentProgress() {
+        let progress = ReadingProgress(
+            chapterOrder: currentChapter.order,
+            imageIndex: currentImageIndex
+        )
+        Task { await progressStore.saveProgress(progress, for: comicID) }
     }
 }

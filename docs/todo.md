@@ -193,6 +193,16 @@
     - 最新章禁用下一章，最早章禁用上一章；
     - 切换章节取消旧章节请求和旧图片工作；
     - 不响应取消的旧请求迟到后不得覆盖当前章节图片。
+- [x] P-020 实现本地阅读进度与陈旧回退
+  - 优先级：高
+  - 涉及文件：`ReadingProgress.swift`、`ReadingProgressStore.swift`、`UserDefaultsReadingProgressStore.swift`、`ReaderChapterModel.swift`、`ReadingProgressTests.swift`
+  - 状态：已完成（2026-07-19，3 项进度测试和 3 项受影响导航测试通过）
+  - 验收标准：
+    - 按 comic ID 独立保存章节 order 和图片 index；
+    - 重新打开时恢复存在的章节及最近有效图片索引；
+    - 已移除章节回退到有效初始章节和第 0 张；
+    - 越界图片索引夹取到实际图片范围；
+    - 陈旧进度回退后以修正值覆盖原记录。
 
 ## Medium Priority
 
