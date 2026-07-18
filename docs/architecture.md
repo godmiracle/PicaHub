@@ -39,6 +39,7 @@ Remote API / Image Server
 2. APIClient 为每个 URLRequest 独立附加 timestamp、signature、authorization 和 image-quality headers。
 3. URLSessionTransport 返回 HTTP 响应，APIClient 解码统一 envelope 并映射网络、HTTP、401、业务及解码错误。
 4. Repository 将 API DTO 转换为 Feature 可用状态；UI 不直接构造请求或读取凭据。
+5. AppRoot 启动时保持 restoring 页面，读取 Keychain 后再选择登录或已认证内容，避免受保护界面闪现。
 
 ## External Dependencies
 
@@ -60,6 +61,7 @@ Remote API / Image Server
 - [x] 实现 Keychain TokenStore
 - [x] 实现 AccountRepository 和会话状态机
 - [x] 实现登录 Feature Model 与 SwiftUI 页面
-- [ ] 接入应用启动恢复和根路由
+- [x] 接入应用启动恢复和根路由
+- [ ] 接入集中注销和 HTTP 401 会话失效
 - [ ] 建立两级图片缓存与受控预取
 - [ ] 根据真机章节规模确定图片磁盘缓存和内存成本上限

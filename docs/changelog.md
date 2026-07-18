@@ -8,6 +8,7 @@
 - 增加 AccountRepository、登录 API 适配器和五态会话状态机。
 - 登录成功仅在 token 安全持久化后进入 authenticated；重复提交由仓库串行拒绝。
 - 增加 SwiftUI 登录页与 LoginModel，覆盖输入校验、提交进度、错误呈现和重复提交保护。
+- 增加应用组合根、启动恢复模型和会话根路由；恢复完成前不显示登录或受保护内容。
 
 遵循简化版 Keep a Changelog。
 

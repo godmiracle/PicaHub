@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct PicaHubApp: App {
+    private let dependencies = AppDependencies()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(repository: dependencies.accountRepository)
         }
     }
 }

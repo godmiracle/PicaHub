@@ -8,19 +8,13 @@
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-#if DEBUG
-        ProtocolSpikeView()
-#else
-        ContentUnavailableView(
-            "协议验证版本",
-            systemImage: "checkmark.shield",
-            description: Text("请使用 Debug 构建完成协议门禁验证")
-        )
-#endif
-    }
-}
+    private let repository: any AccountRepository
 
-#Preview {
-    ContentView()
+    init(repository: any AccountRepository) {
+        self.repository = repository
+    }
+
+    var body: some View {
+        AppRootView(repository: repository)
+    }
 }

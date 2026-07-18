@@ -35,7 +35,7 @@
 - [x] 4.1 Implement a Keychain-backed token store and tests for save, restore, delete, and unavailable-Keychain errors
 - [x] 4.2 Implement the account repository and explicit restoring, unauthenticated, authenticating, authenticated, and failed states
 - [x] 4.3 Implement the login screen with validation, duplicate-submission prevention, progress, and retryable errors
-- [ ] 4.4 Implement startup session restoration without persisting the password
+- [x] 4.4 Implement startup session restoration without persisting the password
 - [ ] 4.5 Implement centralized logout and HTTP 401 invalidation with authenticated-request cancellation
 - [ ] 4.6 Add account-session unit and UI tests for login success, rejection, restart restoration, logout, and repeated 401 events
 

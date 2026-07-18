@@ -3,14 +3,19 @@ import SwiftUI
 struct LoginView: View {
     @State private var model: LoginModel
     @FocusState private var focusedField: Field?
+    private let onAuthenticated: @MainActor () -> Void
 
     private enum Field {
         case email
         case password
     }
 
-    init(repository: any AccountRepository) {
+    init(
+        repository: any AccountRepository,
+        onAuthenticated: @escaping @MainActor () -> Void = {}
+    ) {
         _model = State(initialValue: LoginModel(repository: repository))
+        self.onAuthenticated = onAuthenticated
     }
 
     var body: some View {
@@ -180,7 +185,12 @@ struct LoginView: View {
 
     private func submit(_ model: LoginModel) {
         focusedField = nil
-        Task { await model.submit() }
+        Task {
+            await model.submit()
+            if model.phase == .authenticated {
+                onAuthenticated()
+            }
+        }
     }
 }
 
