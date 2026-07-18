@@ -154,6 +154,16 @@
     - 详情与章节局部失败互不清空；
     - 缺少远端 ID、缩略图、作者和摘要元数据时可解码并使用明确 fallback；
     - 分类浏览、搜索和详情三条 UI 导航链路通过自动化验收。
+- [x] P-016 实现章节图片完整分页读取
+  - 优先级：高
+  - 涉及文件：`ChapterImageRepository.swift`、`APIChapterImageRepository.swift`、`APIChapterImageRepositoryTests.swift`
+  - 状态：已完成（2026-07-19，2 项章节图片仓库专项测试通过）
+  - 验收标准：
+    - 第一页报告多页时读取全部页面；
+    - 剩余分页请求的并发数不超过配置上限；
+    - 即使网络响应乱序，输出仍保持页码与页面内顺序；
+    - 跨页重复图片按 ID 只保留一项；
+    - 取消顶层读取时取消全部在途分页请求。
 
 ## Medium Priority
 
