@@ -84,6 +84,15 @@
     - 刷新期间保留已有分类，刷新失败不清空可用内容；
     - 缺少可选缩略图或远端 ID 时使用明确 fallback，不发生解码崩溃；
     - 已认证根路由显示分类页面，logout 行为保持可用。
+- [x] P-009 固定分类图片直到手动刷新
+  - 优先级：高
+  - 涉及文件：`CategoryRepository.swift`、`APICategoryRepository.swift`、`CategoryImageCache.swift`、`CategoryView.swift`、分类缓存测试
+  - 状态：已完成（2026-07-19，8 项分类缓存专项测试通过）
+  - 验收标准：
+    - 普通视图更新和页面重建复用首次分类快照；
+    - 相同分类即使收到不同图片 URL，也复用首次成功图片；
+    - 只有手动下拉刷新成功后才清空分类图片缓存；
+    - 手动刷新图片绕过 URLCache，刷新失败继续保留旧图。
 
 ## Medium Priority
 

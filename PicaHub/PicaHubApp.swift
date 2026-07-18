@@ -16,6 +16,7 @@ struct PicaHubApp: App {
             ContentView(
                 accountRepository: dependencies.accountRepository,
                 categoryRepository: dependencies.categoryRepository,
+                categoryImageCache: dependencies.categoryImageCache,
                 imageURLBuilder: dependencies.imageURLBuilder
             )
         }

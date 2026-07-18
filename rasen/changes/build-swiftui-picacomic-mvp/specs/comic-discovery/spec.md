@@ -11,6 +11,14 @@ The system SHALL load and present supported comic categories from the remote ser
 - **WHEN** categories cannot be loaded
 - **THEN** the system presents an error state with an explicit retry action
 
+#### Scenario: Category artwork remains stable
+- **WHEN** category data and artwork have loaded successfully and no manual refresh occurs
+- **THEN** the system reuses the first loaded category snapshot and artwork without requesting or replacing them during view updates or reconstruction
+
+#### Scenario: Manual category refresh
+- **WHEN** the user manually refreshes categories and the replacement request succeeds
+- **THEN** the system replaces the category snapshot and reloads artwork while bypassing existing image caches
+
 ### Requirement: Paginated comic browsing
 The system SHALL allow the user to browse comics by category and sort order using service pagination.
 

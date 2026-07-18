@@ -4,13 +4,15 @@ import Testing
 private actor CategoryRepositoryStub: CategoryRepository {
     private var results: [Result<[ComicCategory], APIError>]
     private(set) var callCount = 0
+    private(set) var policies: [CategoryFetchPolicy] = []
 
     init(results: [Result<[ComicCategory], APIError>]) {
         self.results = results
     }
 
-    func fetchCategories() async throws -> [ComicCategory] {
+    func fetchCategories(policy: CategoryFetchPolicy) async throws -> [ComicCategory] {
         callCount += 1
+        policies.append(policy)
         guard !results.isEmpty else { throw APIError.invalidResponse }
         return try results.removeFirst().get()
     }
@@ -20,13 +22,15 @@ private actor RefreshCategoryRepository: CategoryRepository {
     private let initialCategories: [ComicCategory]
     private var continuation: CheckedContinuation<[ComicCategory], any Error>?
     private(set) var callCount = 0
+    private(set) var policies: [CategoryFetchPolicy] = []
 
     init(initialCategories: [ComicCategory]) {
         self.initialCategories = initialCategories
     }
 
-    func fetchCategories() async throws -> [ComicCategory] {
+    func fetchCategories(policy: CategoryFetchPolicy) async throws -> [ComicCategory] {
         callCount += 1
+        policies.append(policy)
         if callCount == 1 { return initialCategories }
         return try await withCheckedThrowingContinuation { continuation in
             self.continuation = continuation
@@ -51,6 +55,7 @@ struct CategoryModelTests {
 
         #expect(model.state == .content(categories: categories, isRefreshing: false))
         #expect(await repository.callCount == 1)
+        #expect(await repository.policies.count == 1)
     }
 
     @Test func emptyResponsePresentsEmptyState() async {
@@ -89,8 +94,11 @@ struct CategoryModelTests {
 
         #expect(model.state == .content(categories: original, isRefreshing: true))
         await repository.finishRefresh(with: .success(replacement))
-        await refresh.value
+        let refreshSucceeded = await refresh.value
+        #expect(refreshSucceeded)
         #expect(model.state == .content(categories: replacement, isRefreshing: false))
+        #expect(await repository.callCount == 2)
+        #expect(await repository.policies == [.useCache, .reloadIgnoringCache])
     }
 
     @Test func refreshFailureKeepsExistingContentAndExposesMessage() async {
@@ -102,8 +110,9 @@ struct CategoryModelTests {
         let refresh = Task { await model.refresh() }
         while await repository.callCount < 2 { await Task.yield() }
         await repository.finishRefresh(with: .failure(.connection("offline")))
-        await refresh.value
+        let refreshSucceeded = await refresh.value
 
+        #expect(!refreshSucceeded)
         #expect(model.state == .content(categories: original, isRefreshing: false))
         #expect(model.refreshErrorMessage == APIError.connection("offline").userMessage)
     }

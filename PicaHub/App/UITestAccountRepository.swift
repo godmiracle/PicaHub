@@ -64,7 +64,7 @@ actor UITestAccountRepository: AccountRepository {
 }
 
 struct UITestCategoryRepository: CategoryRepository {
-    func fetchCategories() async throws -> [ComicCategory] {
+    func fetchCategories(policy: CategoryFetchPolicy) async throws -> [ComicCategory] {
         [
             ComicCategory(
                 remoteID: "ui-test-category",

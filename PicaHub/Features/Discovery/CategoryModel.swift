@@ -24,29 +24,32 @@ final class CategoryModel {
 
     func loadIfNeeded() async {
         guard state == .idle else { return }
-        await load(retaining: nil)
+        _ = await load(retaining: nil, policy: .useCache)
     }
 
     func retry() async {
-        await load(retaining: nil)
+        _ = await load(retaining: nil, policy: .useCache)
     }
 
-    func refresh() async {
+    func refresh() async -> Bool {
         let existingCategories: [ComicCategory]?
         if case let .content(categories, _) = state {
             existingCategories = categories
         } else {
             existingCategories = nil
         }
-        await load(retaining: existingCategories)
+        return await load(retaining: existingCategories, policy: .reloadIgnoringCache)
     }
 
     func dismissRefreshError() {
         refreshErrorMessage = nil
     }
 
-    private func load(retaining existingCategories: [ComicCategory]?) async {
-        guard !isRequestInFlight else { return }
+    private func load(
+        retaining existingCategories: [ComicCategory]?,
+        policy: CategoryFetchPolicy
+    ) async -> Bool {
+        guard !isRequestInFlight else { return false }
         isRequestInFlight = true
         refreshErrorMessage = nil
         if let existingCategories {
@@ -57,17 +60,22 @@ final class CategoryModel {
         defer { isRequestInFlight = false }
 
         do {
-            let categories = try await repository.fetchCategories()
+            let categories = try await repository.fetchCategories(policy: policy)
             try Task.checkCancellation()
             state = categories.isEmpty ? .empty : .content(categories: categories, isRefreshing: false)
+            return true
         } catch is CancellationError {
             restoreAfterCancellation(existingCategories)
+            return false
         } catch APIError.cancelled {
             restoreAfterCancellation(existingCategories)
+            return false
         } catch let error as APIError {
             handleFailure(message: error.userMessage, existingCategories: existingCategories)
+            return false
         } catch {
             handleFailure(message: "分类加载失败，请稍后重试", existingCategories: existingCategories)
+            return false
         }
     }
 

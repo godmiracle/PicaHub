@@ -42,7 +42,8 @@ Remote API / Image Server
 4. Repository 将 API DTO 转换为 Feature 可用状态；UI 不直接构造请求或读取凭据。
 5. AppRoot 启动时保持 restoring 页面，读取 Keychain 后再选择登录或已认证内容，避免受保护界面闪现。
 6. 带 token 的请求由共享 AuthenticatedRequestController 登记；logout 或首个 401 取消全部登记请求并通过持续状态流通知 AppRoot 返回登录。
-7. 分类仓库保留服务端顺序并过滤 `isWeb == true`；CategoryModel 将首屏和刷新映射为 loading、content、empty、error 状态，刷新失败不清空已有分类。
+7. 分类仓库保留服务端顺序并过滤 `isWeb == true`；首次成功结果作为会话内快照复用，只有手动刷新绕过快照。
+8. 分类图片按分类 ID 保留首次成功加载的图片；SwiftUI 重绘和页面重建直接复用，手动刷新成功后同时绕过解码图片缓存和 URLCache。
 
 ## External Dependencies
 

@@ -2,15 +2,19 @@ import SwiftUI
 
 struct CategoryView: View {
     @State private var model: CategoryModel
+    @State private var imageRefreshGeneration = 0
+    private let imageCache: CategoryImageCache
     private let imageURLBuilder: ImageURLBuilder
     private let onLogout: @MainActor () -> Void
 
     init(
         repository: any CategoryRepository,
+        imageCache: CategoryImageCache,
         imageURLBuilder: ImageURLBuilder,
         onLogout: @escaping @MainActor () -> Void
     ) {
         _model = State(initialValue: CategoryModel(repository: repository))
+        self.imageCache = imageCache
         self.imageURLBuilder = imageURLBuilder
         self.onLogout = onLogout
     }
@@ -80,7 +84,12 @@ struct CategoryView: View {
                 spacing: 18
             ) {
                 ForEach(categories) { category in
-                    CategoryCard(category: category, imageURLBuilder: imageURLBuilder)
+                    CategoryCard(
+                        category: category,
+                        imageCache: imageCache,
+                        imageURLBuilder: imageURLBuilder,
+                        refreshGeneration: imageRefreshGeneration
+                    )
                 }
             }
             .padding(16)
@@ -93,14 +102,21 @@ struct CategoryView: View {
                     .padding(.top, 8)
             }
         }
-        .refreshable { await model.refresh() }
+        .refreshable {
+            if await model.refresh() {
+                imageCache.removeAll()
+                imageRefreshGeneration += 1
+            }
+        }
         .accessibilityIdentifier("categories-content")
     }
 }
 
 private struct CategoryCard: View {
     let category: ComicCategory
+    let imageCache: CategoryImageCache
     let imageURLBuilder: ImageURLBuilder
+    let refreshGeneration: Int
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -128,25 +144,99 @@ private struct CategoryCard: View {
     @ViewBuilder
     private var categoryImage: some View {
         if let thumb = category.thumb, let url = imageURLBuilder.url(for: thumb) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case let .success(image):
-                    image.resizable().scaledToFill()
-                case .failure:
-                    imagePlaceholder(systemImage: "photo.badge.exclamationmark")
-                default:
-                    ZStack {
-                        imagePlaceholder(systemImage: "photo")
-                        ProgressView()
-                    }
-                }
-            }
+            StableCategoryImage(
+                categoryID: category.id,
+                url: url,
+                cache: imageCache,
+                refreshGeneration: refreshGeneration
+            )
         } else {
             imagePlaceholder(systemImage: "photo")
         }
     }
 
     private func imagePlaceholder(systemImage: String) -> some View {
+        ZStack {
+            LinearGradient(
+                colors: [.purple.opacity(0.32), .indigo.opacity(0.18)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            Image(systemName: systemImage)
+                .font(.title2)
+                .foregroundStyle(.white.opacity(0.75))
+        }
+    }
+}
+
+private struct StableCategoryImage: View {
+    private enum Phase {
+        case loading
+        case success(UIImage)
+        case failure
+    }
+
+    let categoryID: String
+    let url: URL
+    let cache: CategoryImageCache
+    let refreshGeneration: Int
+    @State private var phase: Phase
+
+    init(
+        categoryID: String,
+        url: URL,
+        cache: CategoryImageCache,
+        refreshGeneration: Int
+    ) {
+        self.categoryID = categoryID
+        self.url = url
+        self.cache = cache
+        self.refreshGeneration = refreshGeneration
+        _phase = State(
+            initialValue: cache.image(for: categoryID).map(Phase.success) ?? .loading
+        )
+    }
+
+    var body: some View {
+        Group {
+            switch phase {
+            case .loading:
+                ZStack {
+                    placeholder(systemImage: "photo")
+                    ProgressView()
+                }
+            case let .success(image):
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            case .failure:
+                placeholder(systemImage: "photo.badge.exclamationmark")
+            }
+        }
+        .task(id: refreshGeneration) {
+            if let image = cache.image(for: categoryID) {
+                phase = .success(image)
+                return
+            }
+
+            phase = .loading
+            do {
+                phase = .success(
+                    try await cache.load(
+                        categoryID: categoryID,
+                        from: url,
+                        reloadIgnoringURLCache: refreshGeneration > 0
+                    )
+                )
+            } catch is CancellationError {
+                return
+            } catch {
+                phase = .failure
+            }
+        }
+    }
+
+    private func placeholder(systemImage: String) -> some View {
         ZStack {
             LinearGradient(
                 colors: [.purple.opacity(0.32), .indigo.opacity(0.18)],

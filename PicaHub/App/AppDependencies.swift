@@ -5,9 +5,11 @@ typealias ProductionAccountRepository = DefaultAccountRepository<
     APIAccountAuthenticator
 >
 
+@MainActor
 struct AppDependencies {
     let accountRepository: any AccountRepository
     let categoryRepository: any CategoryRepository
+    let categoryImageCache: CategoryImageCache
     let apiClient: APIClient
     let imageURLBuilder: ImageURLBuilder
 
@@ -19,6 +21,7 @@ struct AppDependencies {
                 initialState: isAuthenticated ? .authenticated : .unauthenticated
             )
             categoryRepository = UITestCategoryRepository()
+            categoryImageCache = CategoryImageCache()
             apiClient = APIClient(environment: environment)
             imageURLBuilder = ImageURLBuilder(environment: environment)
             return
@@ -40,6 +43,7 @@ struct AppDependencies {
         )
         apiClient = client
         categoryRepository = APICategoryRepository(client: client)
+        categoryImageCache = CategoryImageCache()
         imageURLBuilder = ImageURLBuilder(environment: environment)
     }
 }
