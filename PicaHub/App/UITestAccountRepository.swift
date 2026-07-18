@@ -62,4 +62,19 @@ actor UITestAccountRepository: AccountRepository {
         continuation?.yield(newState)
     }
 }
+
+struct UITestCategoryRepository: CategoryRepository {
+    func fetchCategories() async throws -> [ComicCategory] {
+        [
+            ComicCategory(
+                remoteID: "ui-test-category",
+                title: "骑士幻想夜",
+                description: "UI 自动化测试分类",
+                thumb: nil,
+                isWeb: false,
+                active: true
+            )
+        ]
+    }
+}
 #endif

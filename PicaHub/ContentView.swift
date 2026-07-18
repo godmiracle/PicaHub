@@ -8,13 +8,25 @@
 import SwiftUI
 
 struct ContentView: View {
-    private let repository: any AccountRepository
+    private let accountRepository: any AccountRepository
+    private let categoryRepository: any CategoryRepository
+    private let imageURLBuilder: ImageURLBuilder
 
-    init(repository: any AccountRepository) {
-        self.repository = repository
+    init(
+        accountRepository: any AccountRepository,
+        categoryRepository: any CategoryRepository,
+        imageURLBuilder: ImageURLBuilder
+    ) {
+        self.accountRepository = accountRepository
+        self.categoryRepository = categoryRepository
+        self.imageURLBuilder = imageURLBuilder
     }
 
     var body: some View {
-        AppRootView(repository: repository)
+        AppRootView(
+            repository: accountRepository,
+            categoryRepository: categoryRepository,
+            imageURLBuilder: imageURLBuilder
+        )
     }
 }

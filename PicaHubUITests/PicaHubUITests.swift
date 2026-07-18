@@ -17,6 +17,8 @@ final class PicaHubUITests: XCTestCase {
         app.buttons["login-submit"].tap()
 
         XCTAssertTrue(authenticatedElement(in: app).waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["categories-content"].firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any)["category-ui-test-category"].firstMatch.exists)
 
         app.buttons["退出登录"].tap()
         let confirmation = app.sheets.buttons["退出登录"]
@@ -46,10 +48,12 @@ final class PicaHubUITests: XCTestCase {
         let app = makeApp(authenticated: true)
         app.launch()
         XCTAssertTrue(authenticatedElement(in: app).waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["categories-content"].firstMatch.exists)
 
         app.terminate()
         app.launch()
         XCTAssertTrue(authenticatedElement(in: app).waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["categories-content"].firstMatch.exists)
     }
 
     @MainActor

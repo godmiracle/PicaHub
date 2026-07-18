@@ -13,7 +13,11 @@ struct PicaHubApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(repository: dependencies.accountRepository)
+            ContentView(
+                accountRepository: dependencies.accountRepository,
+                categoryRepository: dependencies.categoryRepository,
+                imageURLBuilder: dependencies.imageURLBuilder
+            )
         }
     }
 }

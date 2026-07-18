@@ -74,6 +74,16 @@
     - 单元测试覆盖 Keychain 故障、重复提交、logout 和重复 401；
     - UI 测试不使用真实账号、远程 API 或生产 Keychain；
     - Debug 测试替身只能通过显式 `--uitesting` 参数启用。
+- [x] P-008 实现分类仓库和分类页面
+  - 优先级：高
+  - 涉及文件：`PicaHub/Domain/Repositories/CategoryRepository.swift`、`PicaHub/Infrastructure/Repositories/APICategoryRepository.swift`、`PicaHub/Features/Discovery/`、分类相关测试
+  - 状态：已完成（2026-07-19，6 项分类单元测试和已认证分类页 UI 用例通过）
+  - 验收标准：
+    - 只展示服务端返回的非 web 分类并保持服务端顺序；
+    - 分类页面覆盖 loading、content、empty、error、retry 和 refresh；
+    - 刷新期间保留已有分类，刷新失败不清空可用内容；
+    - 缺少可选缩略图或远端 ID 时使用明确 fallback，不发生解码崩溃；
+    - 已认证根路由显示分类页面，logout 行为保持可用。
 
 ## Medium Priority
 

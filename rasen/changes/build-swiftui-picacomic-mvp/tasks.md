@@ -41,7 +41,7 @@
 
 ## 5. Comic Discovery
 
-- [ ] 5.1 Implement the category repository and category screen with loading, content, empty, error, retry, and refresh states
+- [x] 5.1 Implement the category repository and category screen with loading, content, empty, error, retry, and refresh states
 - [ ] 5.2 Implement paginated comic browsing with selected category, sort order, duplicate prevention, and bounded next-page loading
 - [ ] 5.3 Implement comic list cells with cover, title, author, metadata fallbacks, image placeholders, and image retry
 - [ ] 5.4 Implement cancellable paginated search with empty-keyword validation and no-results state

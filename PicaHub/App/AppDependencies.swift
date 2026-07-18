@@ -7,7 +7,9 @@ typealias ProductionAccountRepository = DefaultAccountRepository<
 
 struct AppDependencies {
     let accountRepository: any AccountRepository
+    let categoryRepository: any CategoryRepository
     let apiClient: APIClient
+    let imageURLBuilder: ImageURLBuilder
 
     init(environment: APIEnvironment = .proxy) {
 #if DEBUG
@@ -16,7 +18,9 @@ struct AppDependencies {
             accountRepository = UITestAccountRepository(
                 initialState: isAuthenticated ? .authenticated : .unauthenticated
             )
+            categoryRepository = UITestCategoryRepository()
             apiClient = APIClient(environment: environment)
+            imageURLBuilder = ImageURLBuilder(environment: environment)
             return
         }
 #endif
@@ -28,11 +32,14 @@ struct AppDependencies {
             cancelAuthenticatedRequests: { await authenticatedRequests.cancelAll() }
         )
         accountRepository = repository
-        apiClient = APIClient(
+        let client = APIClient(
             environment: environment,
             tokenProvider: { await repository.authenticationToken() },
             sessionExpiredHandler: { await repository.invalidateSession() },
             authenticatedRequests: authenticatedRequests
         )
+        apiClient = client
+        categoryRepository = APICategoryRepository(client: client)
+        imageURLBuilder = ImageURLBuilder(environment: environment)
     }
 }

@@ -2,11 +2,19 @@ import SwiftUI
 
 struct AppRootView: View {
     private let repository: any AccountRepository
+    private let categoryRepository: any CategoryRepository
+    private let imageURLBuilder: ImageURLBuilder
     @State private var model: AppRootModel
     @State private var confirmsLogout = false
 
-    init(repository: any AccountRepository) {
+    init(
+        repository: any AccountRepository,
+        categoryRepository: any CategoryRepository,
+        imageURLBuilder: ImageURLBuilder
+    ) {
         self.repository = repository
+        self.categoryRepository = categoryRepository
+        self.imageURLBuilder = imageURLBuilder
         _model = State(initialValue: AppRootModel(repository: repository))
     }
 
@@ -20,7 +28,7 @@ struct AppRootView: View {
             case .authenticating:
                 restoringView
             case .authenticated:
-                authenticatedPlaceholder
+                categoryView
             case let .failed(failure):
                 restorationFailureView(failure)
             }
@@ -55,17 +63,12 @@ struct AppRootView: View {
         .accessibilityIdentifier("session-restoring")
     }
 
-    private var authenticatedPlaceholder: some View {
-        ContentUnavailableView {
-            Label("登录成功", systemImage: "checkmark.shield.fill")
-        } description: {
-            Text("账号会话已恢复，漫画发现功能将在下一阶段接入。")
-        } actions: {
-            Button("退出登录", role: .destructive) {
-                confirmsLogout = true
-            }
-        }
-        .accessibilityIdentifier("session-authenticated")
+    private var categoryView: some View {
+        CategoryView(
+            repository: categoryRepository,
+            imageURLBuilder: imageURLBuilder,
+            onLogout: { confirmsLogout = true }
+        )
         .confirmationDialog("确认退出登录？", isPresented: $confirmsLogout) {
             Button("退出登录", role: .destructive) {
                 Task { await model.logout() }

@@ -19,14 +19,15 @@ PicaHub
 - [x] 初始化独立 SwiftUI 工程和测试 target
 - [x] 建立 Rasen proposal、design、capability specs 和 tasks
 - [x] 实现并编译协议客户端基础、DTO、签名和脱敏日志
-- [x] 在已连接 iPhone 上通过 48 项协议、Keychain、账号状态、请求取消和根路由单元测试
+- [x] 在已连接 iPhone 上通过 54 项协议、Keychain、账号、请求及分类单元测试
 - [x] 使用真实账号通过只读协议链路与可逆收藏写入、回读、恢复验证
 - [x] 完成并解除 Rasen 协议 Spike 门禁
 - [x] 完成 Keychain、登录、启动恢复、logout 和 HTTP 401 账号会话阶段
 
 ### In Progress
 
-- [ ] 实现分类浏览与漫画发现功能
+- [x] 实现分类仓库和分类页面
+- [ ] 实现分类漫画分页浏览
 
 ### Blocked
 
@@ -44,7 +45,7 @@ PicaHub
 | Path | Purpose |
 |---|---|
 | `PicaHub/` | SwiftUI 应用源码 |
-| `PicaHubTests/` | 协议、模型和后续领域单元测试 |
+| `PicaHubTests/` | 协议、模型、账号与分类领域单元测试 |
 | `PicaHubUITests/` | UI 自动化测试 |
 | `PicaHub.xcodeproj/` | Xcode 工程配置 |
 | `rasen/changes/build-swiftui-picacomic-mvp/` | 当前 MVP 的 proposal、design、specs 和 tasks |
