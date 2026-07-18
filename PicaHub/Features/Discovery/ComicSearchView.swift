@@ -4,9 +4,15 @@ struct ComicSearchView: View {
     @State private var query = ""
     @State private var model: ComicSearchModel
     private let imageURLBuilder: ImageURLBuilder
+    private let detailsRepository: any ComicDetailsRepository
 
-    init(repository: any ComicRepository, imageURLBuilder: ImageURLBuilder) {
+    init(
+        repository: any ComicRepository,
+        detailsRepository: any ComicDetailsRepository,
+        imageURLBuilder: ImageURLBuilder
+    ) {
         _model = State(initialValue: ComicSearchModel(repository: repository))
+        self.detailsRepository = detailsRepository
         self.imageURLBuilder = imageURLBuilder
     }
 
@@ -70,8 +76,18 @@ struct ComicSearchView: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(content.comics) { comic in
-                    ComicBrowseRow(comic: comic, imageURLBuilder: imageURLBuilder)
-                        .task { await model.loadNextPageIfNeeded(after: comic.id) }
+                    NavigationLink {
+                        ComicDetailsView(
+                            comicID: comic.id,
+                            repository: detailsRepository,
+                            imageURLBuilder: imageURLBuilder
+                        )
+                    } label: {
+                        ComicBrowseRow(comic: comic, imageURLBuilder: imageURLBuilder)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("open-comic-\(comic.id)")
+                    .task { await model.loadNextPageIfNeeded(after: comic.id) }
                     Divider().padding(.leading, 16)
                 }
                 paginationFooter(content)

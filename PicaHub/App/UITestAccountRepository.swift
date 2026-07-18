@@ -115,4 +115,40 @@ struct UITestComicRepository: ComicRepository {
         )
     }
 }
+
+struct UITestComicDetailsRepository: ComicDetailsRepository {
+    func fetchDetails(comicID: String) async throws -> ComicDetails {
+        ComicDetails(
+            id: comicID,
+            title: "UI 测试漫画",
+            description: "用于验证详情与章节独立加载。",
+            author: "测试作者",
+            chineseTeam: nil,
+            tags: ["测试", "冒险"],
+            thumb: ImageReference(
+                fileServer: "https://example.com",
+                path: "cover.jpg",
+                originalName: nil
+            ),
+            pagesCount: 20,
+            epsCount: 1,
+            finished: false,
+            isFavourite: false,
+            isLiked: nil,
+            likesCount: 12,
+            viewsCount: 34,
+            commentsCount: nil
+        )
+    }
+
+    func fetchChapters(comicID: String, page: Int) async throws -> Page<Chapter> {
+        Page(
+            docs: [Chapter(id: "ui-test-chapter", title: "第一话", order: 1, updatedAt: nil)],
+            limit: 40,
+            page: page,
+            pages: 1,
+            total: 1
+        )
+    }
+}
 #endif

@@ -17,6 +17,7 @@ struct PicaHubApp: App {
                 accountRepository: dependencies.accountRepository,
                 categoryRepository: dependencies.categoryRepository,
                 comicRepository: dependencies.comicRepository,
+                comicDetailsRepository: dependencies.comicDetailsRepository,
                 categoryImageCache: dependencies.categoryImageCache,
                 imageURLBuilder: dependencies.imageURLBuilder
             )

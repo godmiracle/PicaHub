@@ -6,17 +6,20 @@ struct CategoryView: View {
     private let imageCache: CategoryImageCache
     private let imageURLBuilder: ImageURLBuilder
     private let comicRepository: any ComicRepository
+    private let comicDetailsRepository: any ComicDetailsRepository
     private let onLogout: @MainActor () -> Void
 
     init(
         repository: any CategoryRepository,
         comicRepository: any ComicRepository,
+        comicDetailsRepository: any ComicDetailsRepository,
         imageCache: CategoryImageCache,
         imageURLBuilder: ImageURLBuilder,
         onLogout: @escaping @MainActor () -> Void
     ) {
         _model = State(initialValue: CategoryModel(repository: repository))
         self.comicRepository = comicRepository
+        self.comicDetailsRepository = comicDetailsRepository
         self.imageCache = imageCache
         self.imageURLBuilder = imageURLBuilder
         self.onLogout = onLogout
@@ -31,6 +34,7 @@ struct CategoryView: View {
                         NavigationLink {
                             ComicSearchView(
                                 repository: comicRepository,
+                                detailsRepository: comicDetailsRepository,
                                 imageURLBuilder: imageURLBuilder
                             )
                         } label: {
@@ -101,6 +105,7 @@ struct CategoryView: View {
                         ComicBrowseView(
                             category: category.title,
                             repository: comicRepository,
+                            detailsRepository: comicDetailsRepository,
                             imageURLBuilder: imageURLBuilder
                         )
                     } label: {

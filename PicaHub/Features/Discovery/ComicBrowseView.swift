@@ -3,13 +3,16 @@ import SwiftUI
 struct ComicBrowseView: View {
     @State private var model: ComicBrowseModel
     private let imageURLBuilder: ImageURLBuilder
+    private let detailsRepository: any ComicDetailsRepository
 
     init(
         category: String,
         repository: any ComicRepository,
+        detailsRepository: any ComicDetailsRepository,
         imageURLBuilder: ImageURLBuilder
     ) {
         _model = State(initialValue: ComicBrowseModel(category: category, repository: repository))
+        self.detailsRepository = detailsRepository
         self.imageURLBuilder = imageURLBuilder
     }
 
@@ -89,10 +92,18 @@ struct ComicBrowseView: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(content.comics) { comic in
-                    ComicBrowseRow(comic: comic, imageURLBuilder: imageURLBuilder)
-                        .task {
-                            await model.loadNextPageIfNeeded(after: comic.id)
-                        }
+                    NavigationLink {
+                        ComicDetailsView(
+                            comicID: comic.id,
+                            repository: detailsRepository,
+                            imageURLBuilder: imageURLBuilder
+                        )
+                    } label: {
+                        ComicBrowseRow(comic: comic, imageURLBuilder: imageURLBuilder)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("open-comic-\(comic.id)")
+                    .task { await model.loadNextPageIfNeeded(after: comic.id) }
                     Divider().padding(.leading, 16)
                 }
                 paginationFooter(content)
@@ -195,7 +206,7 @@ struct ComicBrowseRow: View {
     }
 }
 
-private struct ComicCoverView: View {
+struct ComicCoverView: View {
     let comicID: String
     @State private var model: ComicCoverModel?
 

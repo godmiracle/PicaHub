@@ -4,6 +4,7 @@ struct AppRootView: View {
     private let repository: any AccountRepository
     private let categoryRepository: any CategoryRepository
     private let comicRepository: any ComicRepository
+    private let comicDetailsRepository: any ComicDetailsRepository
     private let categoryImageCache: CategoryImageCache
     private let imageURLBuilder: ImageURLBuilder
     @State private var model: AppRootModel
@@ -13,12 +14,14 @@ struct AppRootView: View {
         repository: any AccountRepository,
         categoryRepository: any CategoryRepository,
         comicRepository: any ComicRepository,
+        comicDetailsRepository: any ComicDetailsRepository,
         categoryImageCache: CategoryImageCache,
         imageURLBuilder: ImageURLBuilder
     ) {
         self.repository = repository
         self.categoryRepository = categoryRepository
         self.comicRepository = comicRepository
+        self.comicDetailsRepository = comicDetailsRepository
         self.categoryImageCache = categoryImageCache
         self.imageURLBuilder = imageURLBuilder
         _model = State(initialValue: AppRootModel(repository: repository))
@@ -73,6 +76,7 @@ struct AppRootView: View {
         CategoryView(
             repository: categoryRepository,
             comicRepository: comicRepository,
+            comicDetailsRepository: comicDetailsRepository,
             imageCache: categoryImageCache,
             imageURLBuilder: imageURLBuilder,
             onLogout: { confirmsLogout = true }

@@ -90,6 +90,24 @@ final class PicaHubUITests: XCTestCase {
     }
 
     @MainActor
+    func testComicOpensDetailsAndChapters() throws {
+        let app = makeApp(authenticated: true)
+        app.launch()
+
+        let category = app.descendants(matching: .any)["category-ui-test-category"].firstMatch
+        XCTAssertTrue(category.waitForExistence(timeout: 3))
+        category.tap()
+
+        let comic = app.descendants(matching: .any)["open-comic-ui-test-comic"].firstMatch
+        XCTAssertTrue(comic.waitForExistence(timeout: 3))
+        comic.tap()
+
+        XCTAssertTrue(app.navigationBars["UI 测试漫画"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["用于验证详情与章节独立加载。"].exists)
+        XCTAssertTrue(app.staticTexts["第一话"].exists)
+    }
+
+    @MainActor
     private func makeApp(authenticated: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting"]
