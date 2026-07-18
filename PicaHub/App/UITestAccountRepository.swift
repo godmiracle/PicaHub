@@ -141,14 +141,8 @@ struct UITestComicDetailsRepository: ComicDetailsRepository {
         )
     }
 
-    func fetchChapters(comicID: String, page: Int) async throws -> Page<Chapter> {
-        Page(
-            docs: [Chapter(id: "ui-test-chapter", title: "第一话", order: 1, updatedAt: nil)],
-            limit: 40,
-            page: page,
-            pages: 1,
-            total: 1
-        )
+    func fetchAllChapters(comicID: String) async throws -> [Chapter] {
+        [Chapter(id: "ui-test-chapter", title: "第一话", order: 1, updatedAt: nil)]
     }
 }
 #endif

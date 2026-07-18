@@ -3,13 +3,13 @@ import Testing
 
 private actor ComicDetailsRepositoryStub: ComicDetailsRepository {
     private var detailResults: [Result<ComicDetails, APIError>]
-    private var chapterResults: [Result<Page<Chapter>, APIError>]
+    private var chapterResults: [Result<[Chapter], APIError>]
     private(set) var detailCalls = 0
     private(set) var chapterCalls = 0
 
     init(
         detailResults: [Result<ComicDetails, APIError>],
-        chapterResults: [Result<Page<Chapter>, APIError>]
+        chapterResults: [Result<[Chapter], APIError>]
     ) {
         self.detailResults = detailResults
         self.chapterResults = chapterResults
@@ -21,7 +21,7 @@ private actor ComicDetailsRepositoryStub: ComicDetailsRepository {
         return try detailResults.removeFirst().get()
     }
 
-    func fetchChapters(comicID: String, page: Int) async throws -> Page<Chapter> {
+    func fetchAllChapters(comicID: String) async throws -> [Chapter] {
         chapterCalls += 1
         guard !chapterResults.isEmpty else { throw APIError.invalidResponse }
         return try chapterResults.removeFirst().get()
@@ -48,7 +48,7 @@ struct ComicDetailsModelTests {
         let chapters = [Chapter(id: "one", title: "第一话", order: 1, updatedAt: nil)]
         let repository = ComicDetailsRepositoryStub(
             detailResults: [.failure(.connection("offline"))],
-            chapterResults: [.success(Self.chapterPage(chapters))]
+            chapterResults: [.success(chapters)]
         )
         let model = ComicDetailsModel(comicID: "comic", repository: repository)
 
@@ -63,7 +63,7 @@ struct ComicDetailsModelTests {
         let chapters = [Chapter(id: "one", title: "第一话", order: 1, updatedAt: nil)]
         let repository = ComicDetailsRepositoryStub(
             detailResults: [.success(details)],
-            chapterResults: [.failure(.timedOut), .success(Self.chapterPage(chapters))]
+            chapterResults: [.failure(.timedOut), .success(chapters)]
         )
         let model = ComicDetailsModel(comicID: details.id, repository: repository)
         await model.loadIfNeeded()
@@ -74,10 +74,6 @@ struct ComicDetailsModelTests {
         #expect(model.chaptersState == .loaded(chapters))
         #expect(await repository.detailCalls == 1)
         #expect(await repository.chapterCalls == 2)
-    }
-
-    private static func chapterPage(_ chapters: [Chapter]) -> Page<Chapter> {
-        Page(docs: chapters, limit: 40, page: 1, pages: 1, total: chapters.count)
     }
 
     private static func details() -> ComicDetails {

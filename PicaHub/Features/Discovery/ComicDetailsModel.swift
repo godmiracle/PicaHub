@@ -56,9 +56,9 @@ final class ComicDetailsModel {
         guard chaptersState == .idle else { return }
         chaptersState = .loading
         do {
-            let page = try await repository.fetchChapters(comicID: comicID, page: 1)
+            let chapters = try await repository.fetchAllChapters(comicID: comicID)
             try Task.checkCancellation()
-            chaptersState = .loaded(page.docs)
+            chaptersState = .loaded(chapters)
         } catch {
             chaptersState = Self.isCancellation(error)
                 ? .idle
