@@ -22,10 +22,11 @@ PicaHub
 - [x] 在已连接 iPhone 上通过 48 项协议、Keychain、账号状态、请求取消和根路由单元测试
 - [x] 使用真实账号通过只读协议链路与可逆收藏写入、回读、恢复验证
 - [x] 完成并解除 Rasen 协议 Spike 门禁
+- [x] 完成 Keychain、登录、启动恢复、logout 和 HTTP 401 账号会话阶段
 
 ### In Progress
 
-- [ ] 完成账号会话 UI 自动化与端到端验证
+- [ ] 实现分类浏览与漫画发现功能
 
 ### Blocked
 

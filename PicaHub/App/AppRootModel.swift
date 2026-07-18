@@ -26,7 +26,14 @@ final class AppRootModel {
         await restoreSession()
         for await updatedState in updates {
             guard !Task.isCancelled else { return }
-            state = updatedState
+            switch updatedState {
+            case .authenticating:
+                continue
+            case let .failed(failure) where failure.email != nil:
+                continue
+            default:
+                state = updatedState
+            }
         }
     }
 

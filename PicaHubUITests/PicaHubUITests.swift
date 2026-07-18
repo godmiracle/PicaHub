@@ -1,43 +1,69 @@
-//
-//  PicaHubUITests.swift
-//  PicaHubUITests
-//
-//  Created by vivian on 2026/7/18.
-//
-
 import XCTest
 
 final class PicaHubUITests: XCTestCase {
-
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
+    func testSuccessfulLoginAndLogout() throws {
+        let app = makeApp()
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // XCUIAutomation Documentation
-        // https://developer.apple.com/documentation/xcuiautomation
+        app.textFields["你的登录邮箱"].tap()
+        app.textFields["你的登录邮箱"].typeText("success@example.com")
+        app.secureTextFields["仅用于本次登录"].tap()
+        app.secureTextFields["仅用于本次登录"].typeText("password")
+        app.buttons["login-submit"].tap()
+
+        XCTAssertTrue(authenticatedElement(in: app).waitForExistence(timeout: 3))
+
+        app.buttons["退出登录"].tap()
+        let confirmation = app.sheets.buttons["退出登录"]
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 2))
+        confirmation.tap()
+        XCTAssertTrue(app.textFields["你的登录邮箱"].waitForExistence(timeout: 3))
     }
 
     @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
+    func testRejectedLoginShowsErrorAndClearsPassword() throws {
+        let app = makeApp()
+        app.launch()
+
+        app.textFields["你的登录邮箱"].tap()
+        app.textFields["你的登录邮箱"].typeText("user@example.com")
+        app.secureTextFields["仅用于本次登录"].tap()
+        app.secureTextFields["仅用于本次登录"].typeText("wrong-password")
+        app.buttons["login-submit"].tap()
+
+        XCTAssertTrue(app.staticTexts["login-error"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.secureTextFields["仅用于本次登录"].exists)
+        XCTAssertEqual(app.textFields["你的登录邮箱"].value as? String, "user@example.com")
+    }
+
+    @MainActor
+    func testAuthenticatedSessionRestoresAcrossRelaunch() throws {
+        let app = makeApp(authenticated: true)
+        app.launch()
+        XCTAssertTrue(authenticatedElement(in: app).waitForExistence(timeout: 3))
+
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(authenticatedElement(in: app).waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    private func makeApp(authenticated: Bool = false) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitesting"]
+        if authenticated {
+            app.launchArguments.append("--uitest-authenticated")
         }
+        return app
+    }
+
+    @MainActor
+    private func authenticatedElement(in app: XCUIApplication) -> XCUIElement {
+        app.descendants(matching: .any)["session-authenticated"].firstMatch
     }
 }

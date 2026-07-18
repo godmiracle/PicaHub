@@ -37,7 +37,7 @@
 - [x] 4.3 Implement the login screen with validation, duplicate-submission prevention, progress, and retryable errors
 - [x] 4.4 Implement startup session restoration without persisting the password
 - [x] 4.5 Implement centralized logout and HTTP 401 invalidation with authenticated-request cancellation
-- [ ] 4.6 Add account-session unit and UI tests for login success, rejection, restart restoration, logout, and repeated 401 events
+- [x] 4.6 Add account-session unit and UI tests for login success, rejection, restart restoration, logout, and repeated 401 events
 
 ## 5. Comic Discovery
 

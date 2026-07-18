@@ -65,6 +65,15 @@
     - 首个 HTTP 401 执行同一失效路径；
     - 重复 401 不重复删除或导航；
     - 会话状态持续推送到根路由。
+- [x] P-007 完成账号会话自动化验收
+  - 优先级：高
+  - 涉及文件：`PicaHubUITests/PicaHubUITests.swift`、`PicaHub/App/UITestAccountRepository.swift`、账号相关单元测试
+  - 状态：已完成（2026-07-19，48 项单元测试和 3 项真机 UI 测试通过）
+  - 验收标准：
+    - UI 覆盖登录成功、拒绝、退出和重启恢复；
+    - 单元测试覆盖 Keychain 故障、重复提交、logout 和重复 401；
+    - UI 测试不使用真实账号、远程 API 或生产 Keychain；
+    - Debug 测试替身只能通过显式 `--uitesting` 参数启用。
 
 ## Medium Priority
 
@@ -88,6 +97,13 @@
   - 验收标准：
     - Git 能够忽略指定的参考项目、本地文件、IDE 用户数据和构建产物。
     - 源码、测试、项目文档、`rasen/` 和 `.env.example` 仍可被 Git 追踪。
+- [x] 配置 iOS 三外观 AppIcon
+  - 涉及文件：`PicaHub/Assets.xcassets/AppIcon.appiconset/`、`docs/design/icon.heic`
+  - 优先级：低
+  - 状态：已完成（2026-07-19）
+  - 验收标准：
+    - Any/Light、Dark 和 Tinted 三张 1024×1024 PNG 分别映射到正确的 AppIcon 外观槽位。
+    - 资源目录可通过 Xcode asset catalog 编译。
 
 ## Backlog
 
