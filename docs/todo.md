@@ -164,6 +164,16 @@
     - 即使网络响应乱序，输出仍保持页码与页面内顺序；
     - 跨页重复图片按 ID 只保留一项；
     - 取消顶层读取时取消全部在途分页请求。
+- [x] P-017 建立通用两级图片管线
+  - 优先级：高
+  - 涉及文件：`PicaHub/Shared/Images/ImagePipeline.swift`、`PicaHubTests/ImagePipelineTests.swift`
+  - 状态：已完成（2026-07-19，4 项图片管线专项测试通过）
+  - 验收标准：
+    - 原始图片请求使用 URLCache 兼容的读取策略；
+    - 解码图片使用可配置总成本上限的 `NSCache`；
+    - 同 URL 并发读取复用一个在途任务；
+    - 单图重试清除解码缓存并绕过 URLCache；
+    - 可独立取消单图、全部在途任务或只清除解码缓存。
 
 ## Medium Priority
 
