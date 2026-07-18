@@ -25,6 +25,16 @@
     - 不存在的条目可幂等删除；
     - 空 token、损坏数据和 Keychain 不可用状态可区分；
     - token 使用仅限本机迁移的 Keychain accessibility。
+- [x] P-003 实现账号仓库与会话状态机
+  - 优先级：高
+  - 涉及文件：`PicaHub/Domain/Models/AccountSessionState.swift`、`PicaHub/Domain/Repositories/AccountRepository.swift`、`PicaHub/Infrastructure/Repositories/APIAccountAuthenticator.swift`
+  - 状态：已完成（2026-07-19，7 项状态机测试通过）
+  - 验收标准：
+    - 明确表示 restoring、unauthenticated、authenticating、authenticated 和 failed；
+    - 成功登录先持久化 token，再进入 authenticated；
+    - Keychain 保存失败时不得保留内存 token；
+    - 并发重复登录只发起一次认证请求；
+    - 失败状态不得保留密码。
 
 ## Medium Priority
 
