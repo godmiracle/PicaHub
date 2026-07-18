@@ -8,10 +8,17 @@ struct ComicDetailsView: View {
     init(
         comicID: String,
         repository: any ComicDetailsRepository,
+        favoriteRepository: any FavoriteRepository,
         imageURLBuilder: ImageURLBuilder,
         readerDependencies: ReaderDependencies
     ) {
-        _model = State(initialValue: ComicDetailsModel(comicID: comicID, repository: repository))
+        _model = State(
+            initialValue: ComicDetailsModel(
+                comicID: comicID,
+                repository: repository,
+                favoriteRepository: favoriteRepository
+            )
+        )
         self.imageURLBuilder = imageURLBuilder
         self.readerDependencies = readerDependencies
     }
@@ -70,11 +77,7 @@ struct ComicDetailsView: View {
                         normalized(details.author, fallback: "作者未知"),
                         systemImage: "person"
                     )
-                    Label(
-                        details.isFavourite ? "已收藏" : "未收藏",
-                        systemImage: details.isFavourite ? "heart.fill" : "heart"
-                    )
-                    .foregroundStyle(details.isFavourite ? .pink : .secondary)
+                    favoriteControl
                     Text(metadataLine(details))
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -108,6 +111,51 @@ struct ComicDetailsView: View {
                 .foregroundStyle(.secondary)
         }
         .accessibilityIdentifier("comic-details-content")
+    }
+
+    @ViewBuilder
+    private var favoriteControl: some View {
+        if let isFavorite = model.confirmedFavoriteState {
+            VStack(alignment: .leading, spacing: 6) {
+                Button {
+                    Task { await model.toggleFavorite() }
+                } label: {
+                    HStack(spacing: 7) {
+                        if model.favoriteOperation == .updating {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                        Label(
+                            isFavorite ? "已收藏" : "收藏",
+                            systemImage: isFavorite ? "heart.fill" : "heart"
+                        )
+                    }
+                }
+                .buttonStyle(.bordered)
+                .tint(isFavorite ? .pink : .secondary)
+                .disabled(model.favoriteOperation != .idle)
+                .accessibilityIdentifier("favorite-toggle")
+
+                if let message = model.favoriteErrorMessage {
+                    Text(message)
+                        .font(.caption2)
+                        .foregroundStyle(.red)
+                    Button {
+                        Task { await model.refreshFavoriteState() }
+                    } label: {
+                        if model.favoriteOperation == .refreshing {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Text("刷新收藏状态")
+                        }
+                    }
+                    .font(.caption)
+                    .disabled(model.favoriteOperation != .idle)
+                    .accessibilityIdentifier("favorite-refresh")
+                }
+            }
+        }
     }
 
     @ViewBuilder

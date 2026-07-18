@@ -12,6 +12,7 @@ struct ContentView: View {
     private let categoryRepository: any CategoryRepository
     private let comicRepository: any ComicRepository
     private let comicDetailsRepository: any ComicDetailsRepository
+    private let favoriteRepository: any FavoriteRepository
     private let categoryImageCache: CategoryImageCache
     private let imageURLBuilder: ImageURLBuilder
     private let readerDependencies: ReaderDependencies
@@ -21,6 +22,7 @@ struct ContentView: View {
         categoryRepository: any CategoryRepository,
         comicRepository: any ComicRepository,
         comicDetailsRepository: any ComicDetailsRepository,
+        favoriteRepository: any FavoriteRepository,
         categoryImageCache: CategoryImageCache,
         imageURLBuilder: ImageURLBuilder,
         readerDependencies: ReaderDependencies
@@ -29,6 +31,7 @@ struct ContentView: View {
         self.categoryRepository = categoryRepository
         self.comicRepository = comicRepository
         self.comicDetailsRepository = comicDetailsRepository
+        self.favoriteRepository = favoriteRepository
         self.categoryImageCache = categoryImageCache
         self.imageURLBuilder = imageURLBuilder
         self.readerDependencies = readerDependencies
@@ -40,6 +43,7 @@ struct ContentView: View {
             categoryRepository: categoryRepository,
             comicRepository: comicRepository,
             comicDetailsRepository: comicDetailsRepository,
+            favoriteRepository: favoriteRepository,
             categoryImageCache: categoryImageCache,
             imageURLBuilder: imageURLBuilder,
             readerDependencies: readerDependencies

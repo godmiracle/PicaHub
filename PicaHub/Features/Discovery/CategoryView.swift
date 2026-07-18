@@ -7,6 +7,7 @@ struct CategoryView: View {
     private let imageURLBuilder: ImageURLBuilder
     private let comicRepository: any ComicRepository
     private let comicDetailsRepository: any ComicDetailsRepository
+    private let favoriteRepository: any FavoriteRepository
     private let readerDependencies: ReaderDependencies
     private let onLogout: @MainActor () -> Void
 
@@ -14,6 +15,7 @@ struct CategoryView: View {
         repository: any CategoryRepository,
         comicRepository: any ComicRepository,
         comicDetailsRepository: any ComicDetailsRepository,
+        favoriteRepository: any FavoriteRepository,
         imageCache: CategoryImageCache,
         imageURLBuilder: ImageURLBuilder,
         readerDependencies: ReaderDependencies,
@@ -22,6 +24,7 @@ struct CategoryView: View {
         _model = State(initialValue: CategoryModel(repository: repository))
         self.comicRepository = comicRepository
         self.comicDetailsRepository = comicDetailsRepository
+        self.favoriteRepository = favoriteRepository
         self.imageCache = imageCache
         self.imageURLBuilder = imageURLBuilder
         self.readerDependencies = readerDependencies
@@ -38,6 +41,7 @@ struct CategoryView: View {
                             ComicSearchView(
                                 repository: comicRepository,
                                 detailsRepository: comicDetailsRepository,
+                                favoriteRepository: favoriteRepository,
                                 imageURLBuilder: imageURLBuilder,
                                 readerDependencies: readerDependencies
                             )
@@ -110,6 +114,7 @@ struct CategoryView: View {
                             category: category.title,
                             repository: comicRepository,
                             detailsRepository: comicDetailsRepository,
+                            favoriteRepository: favoriteRepository,
                             imageURLBuilder: imageURLBuilder,
                             readerDependencies: readerDependencies
                         )

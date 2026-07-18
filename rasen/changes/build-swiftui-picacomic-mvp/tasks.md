@@ -63,7 +63,7 @@
 ## 7. Online Favorites
 
 - [x] 7.1 Implement the favorite repository for detail state, mutation, and paginated favorite-list retrieval
-- [ ] 7.2 Implement the detail favorite control with in-flight duplicate prevention and confirmed-state error recovery
+- [x] 7.2 Implement the detail favorite control with in-flight duplicate prevention and confirmed-state error recovery
 - [ ] 7.3 Implement the favorites screen with sort, pagination, empty, error, retry, and refresh states
 - [ ] 7.4 Reconcile confirmed favorite changes between comic details and the favorites list
 - [ ] 7.5 Add favorite tests for add, remove, ambiguous failure, repeated taps, pagination, external refresh changes, and session expiry

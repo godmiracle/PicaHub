@@ -11,6 +11,7 @@ struct AppDependencies {
     let categoryRepository: any CategoryRepository
     let comicRepository: any ComicRepository
     let comicDetailsRepository: any ComicDetailsRepository
+    let favoriteRepository: any FavoriteRepository
     let categoryImageCache: CategoryImageCache
     let apiClient: APIClient
     let imageURLBuilder: ImageURLBuilder
@@ -26,6 +27,7 @@ struct AppDependencies {
             categoryRepository = UITestCategoryRepository()
             comicRepository = UITestComicRepository()
             comicDetailsRepository = UITestComicDetailsRepository()
+            favoriteRepository = UITestFavoriteRepository()
             categoryImageCache = CategoryImageCache()
             apiClient = APIClient(environment: environment)
             imageURLBuilder = ImageURLBuilder(environment: environment)
@@ -55,6 +57,7 @@ struct AppDependencies {
         categoryRepository = APICategoryRepository(client: client)
         comicRepository = APIComicRepository(client: client)
         comicDetailsRepository = APIComicDetailsRepository(client: client)
+        favoriteRepository = APIFavoriteRepository(client: client)
         categoryImageCache = CategoryImageCache()
         imageURLBuilder = ImageURLBuilder(environment: environment)
         readerDependencies = ReaderDependencies(

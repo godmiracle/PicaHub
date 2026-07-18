@@ -8,18 +8,33 @@ enum DetailsResourceState<Value: Equatable & Sendable>: Equatable, Sendable {
     case failed(message: String)
 }
 
+enum FavoriteControlOperation: Equatable, Sendable {
+    case idle
+    case updating
+    case refreshing
+}
+
 @MainActor
 @Observable
 final class ComicDetailsModel {
     let comicID: String
     private(set) var detailsState: DetailsResourceState<ComicDetails> = .idle
     private(set) var chaptersState: DetailsResourceState<[Chapter]> = .idle
+    private(set) var confirmedFavoriteState: Bool?
+    private(set) var favoriteOperation: FavoriteControlOperation = .idle
+    private(set) var favoriteErrorMessage: String?
 
     @ObservationIgnored private let repository: any ComicDetailsRepository
+    @ObservationIgnored private let favoriteRepository: any FavoriteRepository
 
-    init(comicID: String, repository: any ComicDetailsRepository) {
+    init(
+        comicID: String,
+        repository: any ComicDetailsRepository,
+        favoriteRepository: any FavoriteRepository
+    ) {
         self.comicID = comicID
         self.repository = repository
+        self.favoriteRepository = favoriteRepository
     }
 
     func loadIfNeeded() async {
@@ -38,6 +53,41 @@ final class ComicDetailsModel {
         await loadChaptersIfNeeded()
     }
 
+    func toggleFavorite() async {
+        guard let confirmedFavoriteState, favoriteOperation == .idle else { return }
+        favoriteOperation = .updating
+        favoriteErrorMessage = nil
+        defer { favoriteOperation = .idle }
+
+        do {
+            let confirmedState = try await favoriteRepository.setFavorite(
+                comicID: comicID,
+                isFavorite: !confirmedFavoriteState
+            )
+            try Task.checkCancellation()
+            self.confirmedFavoriteState = confirmedState
+        } catch {
+            guard !Self.isCancellation(error) else { return }
+            favoriteErrorMessage = Self.favoriteMessage(for: error)
+        }
+    }
+
+    func refreshFavoriteState() async {
+        guard favoriteOperation == .idle else { return }
+        favoriteOperation = .refreshing
+        favoriteErrorMessage = nil
+        defer { favoriteOperation = .idle }
+
+        do {
+            let confirmedState = try await favoriteRepository.fetchFavoriteState(comicID: comicID)
+            try Task.checkCancellation()
+            self.confirmedFavoriteState = confirmedState
+        } catch {
+            guard !Self.isCancellation(error) else { return }
+            favoriteErrorMessage = Self.favoriteMessage(for: error)
+        }
+    }
+
     private func loadDetailsIfNeeded() async {
         guard detailsState == .idle else { return }
         detailsState = .loading
@@ -45,6 +95,7 @@ final class ComicDetailsModel {
             let details = try await repository.fetchDetails(comicID: comicID)
             try Task.checkCancellation()
             detailsState = .loaded(details)
+            confirmedFavoriteState = details.isFavourite
         } catch {
             detailsState = Self.isCancellation(error)
                 ? .idle
@@ -68,6 +119,13 @@ final class ComicDetailsModel {
 
     private static func message(for error: Error) -> String {
         (error as? APIError)?.userMessage ?? "加载失败，请稍后重试"
+    }
+
+    private static func favoriteMessage(for error: Error) -> String {
+        if error as? FavoriteRepositoryError == .confirmationMismatch {
+            return "无法确认收藏结果，请刷新服务端状态"
+        }
+        return (error as? APIError)?.userMessage ?? "收藏操作失败，请刷新服务端状态"
     }
 
     private static func isCancellation(_ error: Error) -> Bool {

@@ -151,4 +151,21 @@ struct UITestChapterImageRepository: ChapterImageRepository {
         []
     }
 }
+
+actor UITestFavoriteRepository: FavoriteRepository {
+    private var isFavorite = false
+
+    func fetchFavoriteState(comicID: String) -> Bool {
+        isFavorite
+    }
+
+    func setFavorite(comicID: String, isFavorite: Bool) -> Bool {
+        self.isFavorite = isFavorite
+        return isFavorite
+    }
+
+    func fetchFavorites(sort: ComicSort, page: Int) -> Page<ComicSummary> {
+        Page(docs: [], limit: 20, page: page, pages: 1, total: 0)
+    }
+}
 #endif

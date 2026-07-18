@@ -28,6 +28,41 @@ private actor ComicDetailsRepositoryStub: ComicDetailsRepository {
     }
 }
 
+private actor FavoriteRepositoryStub: FavoriteRepository {
+    private var fetchResults: [Result<Bool, APIError>]
+    private var setResults: [Result<Bool, APIError>]
+    private let setDelay: Duration?
+    private(set) var fetchCalls = 0
+    private(set) var setCalls = 0
+
+    init(
+        fetchResults: [Result<Bool, APIError>] = [],
+        setResults: [Result<Bool, APIError>] = [],
+        setDelay: Duration? = nil
+    ) {
+        self.fetchResults = fetchResults
+        self.setResults = setResults
+        self.setDelay = setDelay
+    }
+
+    func fetchFavoriteState(comicID: String) async throws -> Bool {
+        fetchCalls += 1
+        guard !fetchResults.isEmpty else { throw APIError.invalidResponse }
+        return try fetchResults.removeFirst().get()
+    }
+
+    func setFavorite(comicID: String, isFavorite: Bool) async throws -> Bool {
+        setCalls += 1
+        if let setDelay { try await Task.sleep(for: setDelay) }
+        guard !setResults.isEmpty else { throw APIError.invalidResponse }
+        return try setResults.removeFirst().get()
+    }
+
+    func fetchFavorites(sort: ComicSort, page: Int) async throws -> Page<ComicSummary> {
+        Page(docs: [], limit: 20, page: page, pages: 1, total: 0)
+    }
+}
+
 @MainActor
 struct ComicDetailsModelTests {
     @Test func detailsRemainVisibleWhenChaptersFail() async {
@@ -36,7 +71,11 @@ struct ComicDetailsModelTests {
             detailResults: [.success(details)],
             chapterResults: [.failure(.timedOut)]
         )
-        let model = ComicDetailsModel(comicID: details.id, repository: repository)
+        let model = ComicDetailsModel(
+            comicID: details.id,
+            repository: repository,
+            favoriteRepository: FavoriteRepositoryStub()
+        )
 
         await model.loadIfNeeded()
 
@@ -50,7 +89,11 @@ struct ComicDetailsModelTests {
             detailResults: [.failure(.connection("offline"))],
             chapterResults: [.success(chapters)]
         )
-        let model = ComicDetailsModel(comicID: "comic", repository: repository)
+        let model = ComicDetailsModel(
+            comicID: "comic",
+            repository: repository,
+            favoriteRepository: FavoriteRepositoryStub()
+        )
 
         await model.loadIfNeeded()
 
@@ -65,7 +108,11 @@ struct ComicDetailsModelTests {
             detailResults: [.success(details)],
             chapterResults: [.failure(.timedOut), .success(chapters)]
         )
-        let model = ComicDetailsModel(comicID: details.id, repository: repository)
+        let model = ComicDetailsModel(
+            comicID: details.id,
+            repository: repository,
+            favoriteRepository: FavoriteRepositoryStub()
+        )
         await model.loadIfNeeded()
 
         await model.retryChapters()
@@ -74,6 +121,83 @@ struct ComicDetailsModelTests {
         #expect(model.chaptersState == .loaded(chapters))
         #expect(await repository.detailCalls == 1)
         #expect(await repository.chapterCalls == 2)
+    }
+
+    @Test func favoriteChangesOnlyAfterRepositoryConfirmation() async {
+        let details = Self.details()
+        let detailsRepository = ComicDetailsRepositoryStub(
+            detailResults: [.success(details)],
+            chapterResults: [.success([])]
+        )
+        let favoriteRepository = FavoriteRepositoryStub(setResults: [.success(true)])
+        let model = ComicDetailsModel(
+            comicID: details.id,
+            repository: detailsRepository,
+            favoriteRepository: favoriteRepository
+        )
+        await model.loadIfNeeded()
+
+        await model.toggleFavorite()
+
+        #expect(model.confirmedFavoriteState == true)
+        #expect(model.favoriteErrorMessage == nil)
+        #expect(await favoriteRepository.setCalls == 1)
+    }
+
+    @Test func ambiguousFailureKeepsConfirmedStateUntilExplicitRefresh() async {
+        let details = Self.details()
+        let detailsRepository = ComicDetailsRepositoryStub(
+            detailResults: [.success(details)],
+            chapterResults: [.success([])]
+        )
+        let favoriteRepository = FavoriteRepositoryStub(
+            fetchResults: [.success(true)],
+            setResults: [.failure(.timedOut)]
+        )
+        let model = ComicDetailsModel(
+            comicID: details.id,
+            repository: detailsRepository,
+            favoriteRepository: favoriteRepository
+        )
+        await model.loadIfNeeded()
+
+        await model.toggleFavorite()
+
+        #expect(model.confirmedFavoriteState == false)
+        #expect(model.favoriteErrorMessage == APIError.timedOut.userMessage)
+
+        await model.refreshFavoriteState()
+
+        #expect(model.confirmedFavoriteState == true)
+        #expect(model.favoriteErrorMessage == nil)
+        #expect(await favoriteRepository.setCalls == 1)
+        #expect(await favoriteRepository.fetchCalls == 1)
+    }
+
+    @Test func repeatedTapStartsOnlyOneMutation() async {
+        let details = Self.details()
+        let detailsRepository = ComicDetailsRepositoryStub(
+            detailResults: [.success(details)],
+            chapterResults: [.success([])]
+        )
+        let favoriteRepository = FavoriteRepositoryStub(
+            setResults: [.success(true)],
+            setDelay: .milliseconds(100)
+        )
+        let model = ComicDetailsModel(
+            comicID: details.id,
+            repository: detailsRepository,
+            favoriteRepository: favoriteRepository
+        )
+        await model.loadIfNeeded()
+
+        async let first: Void = model.toggleFavorite()
+        await Task.yield()
+        async let second: Void = model.toggleFavorite()
+        _ = await (first, second)
+
+        #expect(model.confirmedFavoriteState == true)
+        #expect(await favoriteRepository.setCalls == 1)
     }
 
     private static func details() -> ComicDetails {

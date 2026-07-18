@@ -5,16 +5,19 @@ struct ComicSearchView: View {
     @State private var model: ComicSearchModel
     private let imageURLBuilder: ImageURLBuilder
     private let detailsRepository: any ComicDetailsRepository
+    private let favoriteRepository: any FavoriteRepository
     private let readerDependencies: ReaderDependencies
 
     init(
         repository: any ComicRepository,
         detailsRepository: any ComicDetailsRepository,
+        favoriteRepository: any FavoriteRepository,
         imageURLBuilder: ImageURLBuilder,
         readerDependencies: ReaderDependencies
     ) {
         _model = State(initialValue: ComicSearchModel(repository: repository))
         self.detailsRepository = detailsRepository
+        self.favoriteRepository = favoriteRepository
         self.imageURLBuilder = imageURLBuilder
         self.readerDependencies = readerDependencies
     }
@@ -83,6 +86,7 @@ struct ComicSearchView: View {
                         ComicDetailsView(
                             comicID: comic.id,
                             repository: detailsRepository,
+                            favoriteRepository: favoriteRepository,
                             imageURLBuilder: imageURLBuilder,
                             readerDependencies: readerDependencies
                         )
