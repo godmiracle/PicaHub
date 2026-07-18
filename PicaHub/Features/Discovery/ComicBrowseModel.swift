@@ -29,6 +29,7 @@ final class ComicBrowseModel {
     @ObservationIgnored private let repository: any ComicRepository
     @ObservationIgnored private var requestGeneration = 0
     @ObservationIgnored private var isLoadingNextPage = false
+    @ObservationIgnored private var activeRequest: Task<Page<ComicSummary>, any Error>?
 
     init(
         category: String,
@@ -55,6 +56,7 @@ final class ComicBrowseModel {
         sort = newSort
         requestGeneration += 1
         isLoadingNextPage = false
+        activeRequest?.cancel()
         await loadFirstPage(retaining: nil, generation: requestGeneration)
     }
 
@@ -67,6 +69,7 @@ final class ComicBrowseModel {
         }
         requestGeneration += 1
         isLoadingNextPage = false
+        activeRequest?.cancel()
         await loadFirstPage(retaining: existing, generation: requestGeneration)
     }
 
@@ -83,6 +86,20 @@ final class ComicBrowseModel {
         refreshErrorMessage = nil
     }
 
+    func cancel() {
+        requestGeneration += 1
+        activeRequest?.cancel()
+        activeRequest = nil
+        isLoadingNextPage = false
+        if var content = contentState {
+            content.isLoadingNextPage = false
+            content.isRefreshing = false
+            state = .content(content)
+        } else if state == .loading {
+            state = .idle
+        }
+    }
+
     private func loadFirstPage(retaining existing: Content?, generation: Int) async {
         refreshErrorMessage = nil
         if var existing {
@@ -94,7 +111,7 @@ final class ComicBrowseModel {
         }
 
         do {
-            let page = try await repository.fetchComics(category: category, sort: sort, page: 1)
+            let page = try await request(page: 1)
             try Task.checkCancellation()
             guard generation == requestGeneration else { return }
             let comics = Self.deduplicated(page.docs)
@@ -135,7 +152,7 @@ final class ComicBrowseModel {
         defer { isLoadingNextPage = false }
 
         do {
-            let page = try await repository.fetchComics(category: category, sort: sort, page: nextPage)
+            let page = try await request(page: nextPage)
             try Task.checkCancellation()
             guard generation == requestGeneration, case var .content(current) = state else { return }
             current.comics = Self.deduplicated(current.comics + page.docs)
@@ -151,6 +168,23 @@ final class ComicBrowseModel {
             }
             state = .content(current)
         }
+    }
+
+    private var contentState: Content? {
+        guard case let .content(content) = state else { return nil }
+        return content
+    }
+
+    private func request(page: Int) async throws -> Page<ComicSummary> {
+        activeRequest?.cancel()
+        let repository = repository
+        let category = category
+        let sort = sort
+        let task = Task {
+            try await repository.fetchComics(category: category, sort: sort, page: page)
+        }
+        activeRequest = task
+        return try await task.value
     }
 
     private static func deduplicated(_ comics: [ComicSummary]) -> [ComicSummary] {

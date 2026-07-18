@@ -32,17 +32,20 @@ private actor FavoriteRepositoryStub: FavoriteRepository {
     private var fetchResults: [Result<Bool, APIError>]
     private var setResults: [Result<Bool, APIError>]
     private let setDelay: Duration?
+    private let ignoresSetCancellation: Bool
     private(set) var fetchCalls = 0
     private(set) var setCalls = 0
 
     init(
         fetchResults: [Result<Bool, APIError>] = [],
         setResults: [Result<Bool, APIError>] = [],
-        setDelay: Duration? = nil
+        setDelay: Duration? = nil,
+        ignoresSetCancellation: Bool = false
     ) {
         self.fetchResults = fetchResults
         self.setResults = setResults
         self.setDelay = setDelay
+        self.ignoresSetCancellation = ignoresSetCancellation
     }
 
     func fetchFavoriteState(comicID: String) async throws -> Bool {
@@ -53,7 +56,13 @@ private actor FavoriteRepositoryStub: FavoriteRepository {
 
     func setFavorite(comicID: String, isFavorite: Bool) async throws -> Bool {
         setCalls += 1
-        if let setDelay { try await Task.sleep(for: setDelay) }
+        if let setDelay {
+            if ignoresSetCancellation {
+                try? await Task.sleep(for: setDelay)
+            } else {
+                try await Task.sleep(for: setDelay)
+            }
+        }
         guard !setResults.isEmpty else { throw APIError.invalidResponse }
         return try setResults.removeFirst().get()
     }
@@ -224,6 +233,37 @@ struct ComicDetailsModelTests {
 
         await model.refreshFavoriteState()
         #expect(reportedStates == [false, true])
+    }
+
+    @Test func dismissalCancelsFavoriteMutationAndIgnoresUncooperativeLateResult() async {
+        let details = Self.details()
+        let detailsRepository = ComicDetailsRepositoryStub(
+            detailResults: [.success(details)],
+            chapterResults: [.success([])]
+        )
+        let favoriteRepository = FavoriteRepositoryStub(
+            setResults: [.success(true)],
+            setDelay: .milliseconds(100),
+            ignoresSetCancellation: true
+        )
+        var reportedStates: [Bool] = []
+        let model = ComicDetailsModel(
+            comicID: details.id,
+            repository: detailsRepository,
+            favoriteRepository: favoriteRepository,
+            onConfirmedFavoriteChange: { _, state in reportedStates.append(state) }
+        )
+        await model.loadIfNeeded()
+
+        let mutation = Task { await model.toggleFavorite() }
+        while await favoriteRepository.setCalls == 0 { await Task.yield() }
+        model.cancel()
+        await mutation.value
+
+        #expect(model.confirmedFavoriteState == false)
+        #expect(model.favoriteOperation == .idle)
+        #expect(model.favoriteErrorMessage == nil)
+        #expect(reportedStates == [false])
     }
 
     private static func details() -> ComicDetails {

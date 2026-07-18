@@ -104,6 +104,31 @@ struct ComicBrowseModelTests {
         #expect(await repository.requests.count == 2)
     }
 
+    @Test func dismissalCancelsNextPageAndIgnoresLateResult() async {
+        let last = Self.comic("last")
+        let repository = GatedComicRepository(
+            firstPage: Self.page(number: 1, pages: 2, comics: [last])
+        )
+        let model = ComicBrowseModel(category: "骑士", repository: repository)
+        await model.loadIfNeeded()
+
+        let loading = Task { await model.loadNextPageIfNeeded(after: last.id) }
+        while await repository.requests.count < 2 { await Task.yield() }
+        model.cancel()
+        await repository.finishNextPage(
+            Self.page(number: 2, pages: 2, comics: [Self.comic("late")])
+        )
+        await loading.value
+
+        guard case let .content(content) = model.state else {
+            Issue.record("Expected retained comic content")
+            return
+        }
+        #expect(content.comics == [last])
+        #expect(!content.isLoadingNextPage)
+        #expect(content.currentPage == 1)
+    }
+
     @Test func sortChangeResetsToFirstPage() async {
         let repository = ComicRepositoryStub(
             results: [

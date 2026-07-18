@@ -27,6 +27,10 @@ final class ComicDetailsModel {
     @ObservationIgnored private let repository: any ComicDetailsRepository
     @ObservationIgnored private let favoriteRepository: any FavoriteRepository
     @ObservationIgnored private let onConfirmedFavoriteChange: @MainActor (String, Bool) -> Void
+    @ObservationIgnored private var requestGeneration = 0
+    @ObservationIgnored private var detailsTask: Task<ComicDetails, any Error>?
+    @ObservationIgnored private var chaptersTask: Task<[Chapter], any Error>?
+    @ObservationIgnored private var favoriteTask: Task<Bool, any Error>?
 
     init(
         comicID: String,
@@ -58,19 +62,33 @@ final class ComicDetailsModel {
 
     func toggleFavorite() async {
         guard let confirmedFavoriteState, favoriteOperation == .idle else { return }
+        let generation = requestGeneration
         favoriteOperation = .updating
         favoriteErrorMessage = nil
-        defer { favoriteOperation = .idle }
+        defer {
+            if generation == requestGeneration {
+                favoriteOperation = .idle
+                favoriteTask = nil
+            }
+        }
 
         do {
-            let confirmedState = try await favoriteRepository.setFavorite(
-                comicID: comicID,
-                isFavorite: !confirmedFavoriteState
-            )
+            let favoriteRepository = favoriteRepository
+            let comicID = comicID
+            let task = Task {
+                try await favoriteRepository.setFavorite(
+                    comicID: comicID,
+                    isFavorite: !confirmedFavoriteState
+                )
+            }
+            favoriteTask = task
+            let confirmedState = try await task.value
             try Task.checkCancellation()
+            guard generation == requestGeneration else { return }
             self.confirmedFavoriteState = confirmedState
             onConfirmedFavoriteChange(comicID, confirmedState)
         } catch {
+            guard generation == requestGeneration else { return }
             guard !Self.isCancellation(error) else { return }
             favoriteErrorMessage = Self.favoriteMessage(for: error)
         }
@@ -78,49 +96,90 @@ final class ComicDetailsModel {
 
     func refreshFavoriteState() async {
         guard favoriteOperation == .idle else { return }
+        let generation = requestGeneration
         favoriteOperation = .refreshing
         favoriteErrorMessage = nil
-        defer { favoriteOperation = .idle }
+        defer {
+            if generation == requestGeneration {
+                favoriteOperation = .idle
+                favoriteTask = nil
+            }
+        }
 
         do {
-            let confirmedState = try await favoriteRepository.fetchFavoriteState(comicID: comicID)
+            let favoriteRepository = favoriteRepository
+            let comicID = comicID
+            let task = Task { try await favoriteRepository.fetchFavoriteState(comicID: comicID) }
+            favoriteTask = task
+            let confirmedState = try await task.value
             try Task.checkCancellation()
+            guard generation == requestGeneration else { return }
             self.confirmedFavoriteState = confirmedState
             onConfirmedFavoriteChange(comicID, confirmedState)
         } catch {
+            guard generation == requestGeneration else { return }
             guard !Self.isCancellation(error) else { return }
             favoriteErrorMessage = Self.favoriteMessage(for: error)
         }
     }
 
+    func cancel() {
+        requestGeneration += 1
+        detailsTask?.cancel()
+        chaptersTask?.cancel()
+        favoriteTask?.cancel()
+        detailsTask = nil
+        chaptersTask = nil
+        favoriteTask = nil
+        if detailsState == .loading { detailsState = .idle }
+        if chaptersState == .loading { chaptersState = .idle }
+        favoriteOperation = .idle
+    }
+
     private func loadDetailsIfNeeded() async {
         guard detailsState == .idle else { return }
+        let generation = requestGeneration
         detailsState = .loading
         do {
-            let details = try await repository.fetchDetails(comicID: comicID)
+            let repository = repository
+            let comicID = comicID
+            let task = Task { try await repository.fetchDetails(comicID: comicID) }
+            detailsTask = task
+            let details = try await task.value
             try Task.checkCancellation()
+            guard generation == requestGeneration else { return }
             detailsState = .loaded(details)
             confirmedFavoriteState = details.isFavourite
             onConfirmedFavoriteChange(comicID, details.isFavourite)
         } catch {
+            guard generation == requestGeneration else { return }
             detailsState = Self.isCancellation(error)
                 ? .idle
                 : .failed(message: Self.message(for: error))
         }
+        if generation == requestGeneration { detailsTask = nil }
     }
 
     private func loadChaptersIfNeeded() async {
         guard chaptersState == .idle else { return }
+        let generation = requestGeneration
         chaptersState = .loading
         do {
-            let chapters = try await repository.fetchAllChapters(comicID: comicID)
+            let repository = repository
+            let comicID = comicID
+            let task = Task { try await repository.fetchAllChapters(comicID: comicID) }
+            chaptersTask = task
+            let chapters = try await task.value
             try Task.checkCancellation()
+            guard generation == requestGeneration else { return }
             chaptersState = .loaded(chapters)
         } catch {
+            guard generation == requestGeneration else { return }
             chaptersState = Self.isCancellation(error)
                 ? .idle
                 : .failed(message: Self.message(for: error))
         }
+        if generation == requestGeneration { chaptersTask = nil }
     }
 
     private static func message(for error: Error) -> String {

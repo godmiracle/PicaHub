@@ -28,6 +28,7 @@ struct ComicBrowseView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { sortMenu }
             .task { await model.loadIfNeeded() }
+            .onDisappear { model.cancel() }
             .alert(
                 "刷新失败",
                 isPresented: Binding(

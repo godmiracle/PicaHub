@@ -71,7 +71,7 @@
 ## 8. Integration and Verification
 
 - [x] 8.1 Wire account, discovery, details, reader, and favorites into the SwiftUI navigation structure
-- [ ] 8.2 Verify deep navigation cancellation and ensure dismissed features cannot receive late state updates
+- [x] 8.2 Verify deep navigation cancellation and ensure dismissed features cannot receive late state updates
 - [ ] 8.3 Run all unit, fixture, repository, and UI tests and record the results
 - [ ] 8.4 Run a clean iOS build for the selected simulator and physical device targets
 - [ ] 8.5 Perform manual end-to-end validation for login, restart, browse, search, read, favorite, unfavorite, logout, offline, and expired-session flows

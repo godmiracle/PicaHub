@@ -37,6 +37,7 @@ struct ComicDetailsView: View {
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .task { await model.loadIfNeeded() }
+        .onDisappear { model.cancel() }
         .accessibilityIdentifier("comic-details")
     }
 
