@@ -24,8 +24,71 @@ private struct ImmediateChapterImageRepository: ChapterImageRepository {
     }
 }
 
+private actor SequenceChapterImageRepository: ChapterImageRepository {
+    enum Outcome: Sendable {
+        case success([ChapterImage])
+        case failure(APIError)
+    }
+
+    private var outcomes: [Outcome]
+
+    init(outcomes: [Outcome]) {
+        self.outcomes = outcomes
+    }
+
+    func fetchAllImages(comicID: String, chapterOrder: Int) async throws -> [ChapterImage] {
+        guard !outcomes.isEmpty else { return [] }
+        switch outcomes.removeFirst() {
+        case let .success(images): return images
+        case let .failure(error): throw error
+        }
+    }
+}
+
 @MainActor
 struct ReaderChapterModelTests {
+    @Test func validChapterWithoutImagesProducesDedicatedEmptyState() async {
+        let model = ReaderChapterModel(
+            comicID: "comic",
+            chapters: Self.chapters,
+            initialChapter: Self.chapters[0],
+            repository: SequenceChapterImageRepository(outcomes: [.success([])])
+        )
+
+        model.loadCurrentChapter()
+        await waitUntil { model.contentState == .empty }
+
+        #expect(model.images.isEmpty)
+        #expect(model.errorMessage == nil)
+    }
+
+    @Test func imageListFailureCanRetryWithoutLosingChapterMetadataOrDuplicatingImages() async {
+        let chapter = Self.chapters[1]
+        let expectedImages = [Self.image(id: "one"), Self.image(id: "two")]
+        let repository = SequenceChapterImageRepository(
+            outcomes: [.failure(.connection("offline")), .success(expectedImages)]
+        )
+        let model = ReaderChapterModel(
+            comicID: "comic",
+            chapters: Self.chapters,
+            initialChapter: chapter,
+            repository: repository
+        )
+
+        model.loadCurrentChapter()
+        await waitUntil {
+            if case .failed = model.contentState { return true }
+            return false
+        }
+        #expect(model.currentChapter == chapter)
+
+        model.loadCurrentChapter()
+        await waitUntil { model.contentState == .content }
+
+        #expect(model.currentChapter == chapter)
+        #expect(model.images == expectedImages)
+    }
+
     @Test func navigationUsesNarrativeDirectionWithNewestFirstChapterList() {
         let chapters = Self.chapters
         let repository = ImmediateChapterImageRepository()

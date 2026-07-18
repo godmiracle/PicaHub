@@ -56,7 +56,7 @@
 - [x] 6.3 Implement the vertically scrolling reader with visible-image prioritization and bounded look-ahead prefetch
 - [x] 6.4 Implement previous and next chapter navigation with boundary handling and obsolete-task cancellation
 - [x] 6.5 Implement local reading progress keyed by comic with stale chapter and image fallback
-- [ ] 6.6 Implement reader-level metadata, image-list, empty-chapter, and individual-image failure states
+- [x] 6.6 Implement reader-level metadata, image-list, empty-chapter, and individual-image failure states
 - [ ] 6.7 Add reader tests for image ordering, prefetch bounds, cancellation, retry deduplication, chapter boundaries, progress restoration, and stale progress
 - [ ] 6.8 Perform real-device memory testing with long high-resolution chapters and tune cache and prefetch limits
 

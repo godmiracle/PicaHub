@@ -1,6 +1,14 @@
 import Foundation
 import Observation
 
+enum ReaderContentState: Equatable {
+    case idle
+    case loading
+    case content
+    case empty
+    case failed(message: String)
+}
+
 @MainActor
 @Observable
 final class ReaderChapterModel {
@@ -9,6 +17,13 @@ final class ReaderChapterModel {
     private(set) var currentImageIndex = 0
     private(set) var isLoading = false
     private(set) var errorMessage: String?
+
+    var contentState: ReaderContentState {
+        if isLoading { return .loading }
+        if let errorMessage { return .failed(message: errorMessage) }
+        guard hasLoadedCurrentChapter else { return .idle }
+        return images.isEmpty ? .empty : .content
+    }
 
     var previousChapter: Chapter? {
         guard let index = currentIndex, chapters.indices.contains(index + 1) else { return nil }
@@ -28,6 +43,7 @@ final class ReaderChapterModel {
     @ObservationIgnored private var loadTask: Task<Void, Never>?
     @ObservationIgnored private var loadGeneration = 0
     @ObservationIgnored private var restoredImageIndex: Int?
+    @ObservationIgnored private var hasLoadedCurrentChapter = false
 
     init(
         comicID: String,
@@ -99,6 +115,7 @@ final class ReaderChapterModel {
         images = []
         currentImageIndex = 0
         restoredImageIndex = nil
+        hasLoadedCurrentChapter = false
         errorMessage = nil
         startLoadingCurrentChapter()
     }
@@ -110,6 +127,7 @@ final class ReaderChapterModel {
         loadTask?.cancel()
         cancelImageWork()
         isLoading = true
+        hasLoadedCurrentChapter = false
         errorMessage = nil
 
         loadTask = Task { [weak self] in
@@ -127,6 +145,7 @@ final class ReaderChapterModel {
                     ? 0
                     : min(max(0, requestedIndex), images.count - 1)
                 restoredImageIndex = nil
+                hasLoadedCurrentChapter = true
                 isLoading = false
                 loadTask = nil
                 persistCurrentProgress()

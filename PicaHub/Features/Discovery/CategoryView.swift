@@ -7,6 +7,7 @@ struct CategoryView: View {
     private let imageURLBuilder: ImageURLBuilder
     private let comicRepository: any ComicRepository
     private let comicDetailsRepository: any ComicDetailsRepository
+    private let readerDependencies: ReaderDependencies
     private let onLogout: @MainActor () -> Void
 
     init(
@@ -15,6 +16,7 @@ struct CategoryView: View {
         comicDetailsRepository: any ComicDetailsRepository,
         imageCache: CategoryImageCache,
         imageURLBuilder: ImageURLBuilder,
+        readerDependencies: ReaderDependencies,
         onLogout: @escaping @MainActor () -> Void
     ) {
         _model = State(initialValue: CategoryModel(repository: repository))
@@ -22,6 +24,7 @@ struct CategoryView: View {
         self.comicDetailsRepository = comicDetailsRepository
         self.imageCache = imageCache
         self.imageURLBuilder = imageURLBuilder
+        self.readerDependencies = readerDependencies
         self.onLogout = onLogout
     }
 
@@ -35,7 +38,8 @@ struct CategoryView: View {
                             ComicSearchView(
                                 repository: comicRepository,
                                 detailsRepository: comicDetailsRepository,
-                                imageURLBuilder: imageURLBuilder
+                                imageURLBuilder: imageURLBuilder,
+                                readerDependencies: readerDependencies
                             )
                         } label: {
                             Label("搜索", systemImage: "magnifyingglass")
@@ -106,7 +110,8 @@ struct CategoryView: View {
                             category: category.title,
                             repository: comicRepository,
                             detailsRepository: comicDetailsRepository,
-                            imageURLBuilder: imageURLBuilder
+                            imageURLBuilder: imageURLBuilder,
+                            readerDependencies: readerDependencies
                         )
                     } label: {
                         CategoryCard(

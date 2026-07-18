@@ -14,6 +14,7 @@ struct ContentView: View {
     private let comicDetailsRepository: any ComicDetailsRepository
     private let categoryImageCache: CategoryImageCache
     private let imageURLBuilder: ImageURLBuilder
+    private let readerDependencies: ReaderDependencies
 
     init(
         accountRepository: any AccountRepository,
@@ -21,7 +22,8 @@ struct ContentView: View {
         comicRepository: any ComicRepository,
         comicDetailsRepository: any ComicDetailsRepository,
         categoryImageCache: CategoryImageCache,
-        imageURLBuilder: ImageURLBuilder
+        imageURLBuilder: ImageURLBuilder,
+        readerDependencies: ReaderDependencies
     ) {
         self.accountRepository = accountRepository
         self.categoryRepository = categoryRepository
@@ -29,6 +31,7 @@ struct ContentView: View {
         self.comicDetailsRepository = comicDetailsRepository
         self.categoryImageCache = categoryImageCache
         self.imageURLBuilder = imageURLBuilder
+        self.readerDependencies = readerDependencies
     }
 
     var body: some View {
@@ -38,7 +41,8 @@ struct ContentView: View {
             comicRepository: comicRepository,
             comicDetailsRepository: comicDetailsRepository,
             categoryImageCache: categoryImageCache,
-            imageURLBuilder: imageURLBuilder
+            imageURLBuilder: imageURLBuilder,
+            readerDependencies: readerDependencies
         )
     }
 }

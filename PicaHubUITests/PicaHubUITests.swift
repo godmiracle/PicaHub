@@ -108,6 +108,27 @@ final class PicaHubUITests: XCTestCase {
     }
 
     @MainActor
+    func testChapterOpensReaderAndShowsEmptyChapterState() throws {
+        let app = makeApp(authenticated: true)
+        app.launch()
+
+        let category = app.descendants(matching: .any)["category-ui-test-category"].firstMatch
+        XCTAssertTrue(category.waitForExistence(timeout: 3))
+        category.tap()
+        let comic = app.descendants(matching: .any)["open-comic-ui-test-comic"].firstMatch
+        XCTAssertTrue(comic.waitForExistence(timeout: 3))
+        comic.tap()
+
+        let chapter = app.descendants(matching: .any)["open-reader-ui-test-chapter"].firstMatch
+        XCTAssertTrue(chapter.waitForExistence(timeout: 3))
+        chapter.tap()
+
+        XCTAssertTrue(app.descendants(matching: .any)["reader"].firstMatch.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["第一话"].exists)
+        XCTAssertTrue(app.staticTexts["本章暂无图片"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
     private func makeApp(authenticated: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting"]

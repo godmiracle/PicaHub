@@ -3,14 +3,17 @@ import SwiftUI
 struct ComicDetailsView: View {
     @State private var model: ComicDetailsModel
     private let imageURLBuilder: ImageURLBuilder
+    private let readerDependencies: ReaderDependencies
 
     init(
         comicID: String,
         repository: any ComicDetailsRepository,
-        imageURLBuilder: ImageURLBuilder
+        imageURLBuilder: ImageURLBuilder,
+        readerDependencies: ReaderDependencies
     ) {
         _model = State(initialValue: ComicDetailsModel(comicID: comicID, repository: repository))
         self.imageURLBuilder = imageURLBuilder
+        self.readerDependencies = readerDependencies
     }
 
     var body: some View {
@@ -132,15 +135,33 @@ struct ComicDetailsView: View {
                 } else {
                     LazyVStack(spacing: 0) {
                         ForEach(chapters) { chapter in
-                            HStack {
-                                Text(chapter.title)
-                                Spacer()
-                                Text("#\(chapter.order)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                            NavigationLink {
+                                ReaderView(
+                                    comicID: model.comicID,
+                                    comicTitle: navigationTitle,
+                                    chapters: chapters,
+                                    initialChapter: chapter,
+                                    repository: readerDependencies.chapterImageRepository,
+                                    imageURLBuilder: imageURLBuilder,
+                                    imagePipeline: readerDependencies.imagePipeline,
+                                    progressStore: readerDependencies.progressStore
+                                )
+                            } label: {
+                                HStack {
+                                    Text(chapter.title)
+                                    Spacer()
+                                    Text("#\(chapter.order)")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundStyle(.tertiary)
+                                }
+                                .contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
                             .padding(.vertical, 11)
-                            .accessibilityIdentifier("chapter-\(chapter.id)")
+                            .accessibilityIdentifier("open-reader-\(chapter.id)")
                             Divider()
                         }
                     }

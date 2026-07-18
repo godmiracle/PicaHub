@@ -14,6 +14,7 @@ struct AppDependencies {
     let categoryImageCache: CategoryImageCache
     let apiClient: APIClient
     let imageURLBuilder: ImageURLBuilder
+    let readerDependencies: ReaderDependencies
 
     init(environment: APIEnvironment = .proxy) {
 #if DEBUG
@@ -28,6 +29,11 @@ struct AppDependencies {
             categoryImageCache = CategoryImageCache()
             apiClient = APIClient(environment: environment)
             imageURLBuilder = ImageURLBuilder(environment: environment)
+            readerDependencies = ReaderDependencies(
+                chapterImageRepository: UITestChapterImageRepository(),
+                imagePipeline: ImagePipeline(),
+                progressStore: UserDefaultsReadingProgressStore()
+            )
             return
         }
 #endif
@@ -51,5 +57,10 @@ struct AppDependencies {
         comicDetailsRepository = APIComicDetailsRepository(client: client)
         categoryImageCache = CategoryImageCache()
         imageURLBuilder = ImageURLBuilder(environment: environment)
+        readerDependencies = ReaderDependencies(
+            chapterImageRepository: APIChapterImageRepository(client: client),
+            imagePipeline: ImagePipeline(),
+            progressStore: UserDefaultsReadingProgressStore()
+        )
     }
 }

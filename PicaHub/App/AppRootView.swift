@@ -7,6 +7,7 @@ struct AppRootView: View {
     private let comicDetailsRepository: any ComicDetailsRepository
     private let categoryImageCache: CategoryImageCache
     private let imageURLBuilder: ImageURLBuilder
+    private let readerDependencies: ReaderDependencies
     @State private var model: AppRootModel
     @State private var confirmsLogout = false
 
@@ -16,7 +17,8 @@ struct AppRootView: View {
         comicRepository: any ComicRepository,
         comicDetailsRepository: any ComicDetailsRepository,
         categoryImageCache: CategoryImageCache,
-        imageURLBuilder: ImageURLBuilder
+        imageURLBuilder: ImageURLBuilder,
+        readerDependencies: ReaderDependencies
     ) {
         self.repository = repository
         self.categoryRepository = categoryRepository
@@ -24,6 +26,7 @@ struct AppRootView: View {
         self.comicDetailsRepository = comicDetailsRepository
         self.categoryImageCache = categoryImageCache
         self.imageURLBuilder = imageURLBuilder
+        self.readerDependencies = readerDependencies
         _model = State(initialValue: AppRootModel(repository: repository))
     }
 
@@ -79,6 +82,7 @@ struct AppRootView: View {
             comicDetailsRepository: comicDetailsRepository,
             imageCache: categoryImageCache,
             imageURLBuilder: imageURLBuilder,
+            readerDependencies: readerDependencies,
             onLogout: { confirmsLogout = true }
         )
         .confirmationDialog("确认退出登录？", isPresented: $confirmsLogout) {

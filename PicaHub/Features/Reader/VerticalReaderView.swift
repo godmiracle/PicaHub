@@ -3,15 +3,26 @@ import SwiftUI
 struct VerticalReaderView: View {
     @State private var model: ReaderImageModel
     private let images: [ChapterImage]
+    private let initialVisibleIndex: Int
+    private let cancellationController: ReaderImageCancellationController?
+    private let onVisibleIndexChanged: (Int) -> Void
 
     init(
         images: [ChapterImage],
         imageURLBuilder: ImageURLBuilder,
         imagePipeline: ImagePipeline,
         lookAheadCount: Int = 2,
-        maximumConcurrentLoads: Int = 3
+        maximumConcurrentLoads: Int = 3,
+        initialVisibleIndex: Int = 0,
+        cancellationController: ReaderImageCancellationController? = nil,
+        onVisibleIndexChanged: @escaping (Int) -> Void = { _ in }
     ) {
         self.images = images
+        self.initialVisibleIndex = images.isEmpty
+            ? 0
+            : min(max(0, initialVisibleIndex), images.count - 1)
+        self.cancellationController = cancellationController
+        self.onVisibleIndexChanged = onVisibleIndexChanged
         _model = State(
             initialValue: ReaderImageModel(
                 urls: images.map { imageURLBuilder.url(for: $0.media) },
@@ -23,30 +34,44 @@ struct VerticalReaderView: View {
     }
 
     var body: some View {
-        GeometryReader { viewport in
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(Array(images.indices), id: \.self) { index in
-                        imageView(at: index)
-                            .background {
-                                GeometryReader { geometry in
-                                    Color.clear.preference(
-                                        key: ReaderImageFramePreferenceKey.self,
-                                        value: [index: geometry.frame(in: .named("reader-scroll"))]
-                                    )
+        ScrollViewReader { proxy in
+            GeometryReader { viewport in
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(Array(images.indices), id: \.self) { index in
+                            imageView(at: index)
+                                .id(index)
+                                .background {
+                                    GeometryReader { geometry in
+                                        Color.clear.preference(
+                                            key: ReaderImageFramePreferenceKey.self,
+                                            value: [index: geometry.frame(in: .named("reader-scroll"))]
+                                        )
+                                    }
                                 }
-                            }
-                            .accessibilityIdentifier("reader-image-\(index)")
+                                .accessibilityIdentifier("reader-image-\(index)")
+                        }
                     }
                 }
+                .coordinateSpace(name: "reader-scroll")
+                .onPreferenceChange(ReaderImageFramePreferenceKey.self) { frames in
+                    updateVisibleIndex(frames: frames, viewportHeight: viewport.size.height)
+                }
             }
-            .coordinateSpace(name: "reader-scroll")
-            .onPreferenceChange(ReaderImageFramePreferenceKey.self) { frames in
-                updateVisibleIndex(frames: frames, viewportHeight: viewport.size.height)
+            .task {
+                model.updateVisibleIndex(initialVisibleIndex)
+                await Task.yield()
+                proxy.scrollTo(initialVisibleIndex, anchor: .top)
             }
         }
         .background(Color.black)
-        .onDisappear { model.cancelAll() }
+        .onAppear {
+            cancellationController?.install { model.cancelAll() }
+        }
+        .onDisappear {
+            model.cancelAll()
+            cancellationController?.remove()
+        }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
             model.handleMemoryPressure()
         }
@@ -88,6 +113,7 @@ struct VerticalReaderView: View {
             }
         if let index = visible?.key {
             model.updateVisibleIndex(index)
+            onVisibleIndexChanged(index)
         }
     }
 }

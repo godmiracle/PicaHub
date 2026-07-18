@@ -266,4 +266,4 @@ task 6.6 的阅读器页面应直接绑定 `previousChapter` / `nextChapter` 的
 
 ### Follow-up
 
-task 6.6 的滚动视图需要把实际可见索引回传给章节模型，并在恢复完成后滚动到 `currentImageIndex`。
+task 6.6 已把实际可见索引回传给章节模型，并在恢复完成后滚动到 `currentImageIndex`。仍需在 task 6.8 使用稳定真实长章节验证内存峰值。

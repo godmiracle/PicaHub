@@ -145,4 +145,10 @@ struct UITestComicDetailsRepository: ComicDetailsRepository {
         [Chapter(id: "ui-test-chapter", title: "第一话", order: 1, updatedAt: nil)]
     }
 }
+
+struct UITestChapterImageRepository: ChapterImageRepository {
+    func fetchAllImages(comicID: String, chapterOrder: Int) async throws -> [ChapterImage] {
+        []
+    }
+}
 #endif
