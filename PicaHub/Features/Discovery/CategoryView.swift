@@ -38,6 +38,18 @@ struct CategoryView: View {
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         NavigationLink {
+                            FavoritesView(
+                                repository: favoriteRepository,
+                                detailsRepository: comicDetailsRepository,
+                                imageURLBuilder: imageURLBuilder,
+                                readerDependencies: readerDependencies
+                            )
+                        } label: {
+                            Label("收藏", systemImage: "heart")
+                        }
+                        .accessibilityIdentifier("open-favorites")
+
+                        NavigationLink {
                             ComicSearchView(
                                 repository: comicRepository,
                                 detailsRepository: comicDetailsRepository,

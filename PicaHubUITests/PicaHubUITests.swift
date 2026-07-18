@@ -90,6 +90,20 @@ final class PicaHubUITests: XCTestCase {
     }
 
     @MainActor
+    func testMainNavigationOpensFavorites() throws {
+        let app = makeApp(authenticated: true)
+        app.launch()
+
+        let openFavorites = app.descendants(matching: .any)["open-favorites"].firstMatch
+        XCTAssertTrue(openFavorites.waitForExistence(timeout: 3))
+        openFavorites.tap()
+
+        XCTAssertTrue(app.navigationBars["我的收藏"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["favorites-empty"].firstMatch.exists)
+        XCTAssertTrue(app.buttons["favorite-sort-menu"].exists)
+    }
+
+    @MainActor
     func testComicOpensDetailsAndChapters() throws {
         let app = makeApp(authenticated: true)
         app.launch()
