@@ -268,6 +268,30 @@ task 6.6 的阅读器页面应直接绑定 `previousChapter` / `nextChapter` 的
 
 task 6.6 已把实际可见索引回传给章节模型，并在恢复完成后滚动到 `currentImageIndex`。仍需在 task 6.8 使用稳定真实长章节验证内存峰值。
 
+## 2026-07-19 - Isolate Reader Image Loads by Generation
+
+### Decision
+
+阅读器为每次单图加载分配独立代次；只有仍为当前代次的完成或取消回调可以更新该索引状态。`CancellationError` 与领域层 `APIError.cancelled` 都恢复为可再次调度的 idle，不展示为网络失败。
+
+### Reason
+
+快速跨区滚动后立即返回时，同一索引可能在旧取消回调抵达前已经启动新任务。若只按索引保存任务，旧回调会误删新任务并把 loading 改回 idle，导致可见图片停住或显示需要手动重试的失败状态。
+
+### Alternatives Considered
+
+- 取消后把索引永久标记 failed：会把正常调度行为暴露成用户错误，且必须手动重试。
+- 只依赖 `Task.cancel()`：底层图片管线可能以领域错误返回取消，且旧任务回调仍可能迟到。
+- 不取消离屏图片：会规避竞态但破坏有界预取和并发上限。
+
+### Impact
+
+快速滚动仍只保留当前可见项及前向预取窗口；重新进入窗口会自动加载，旧取消结果不会覆盖新一代状态。
+
+### Follow-up
+
+真实长章节内存验收仍按 P-023 独立执行；本决策不替代真机峰值内存与持续滚动验证。
+
 ## 2026-07-19 - Confirm Favorite Toggle Through Detail Readback
 
 ### Decision

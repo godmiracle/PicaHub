@@ -328,6 +328,16 @@
     - 分别验证 offline 与 expired-session/HTTP 401 的用户可见状态及恢复路径；
     - 记录验证日期、使用环境、每条流程结果和任何失败证据后，才可勾选 Rasen task 8.5。
 
+- [x] P-033 修复阅读器快速滚动的图片取消竞态
+  - 优先级：高
+  - 涉及文件：`PicaHub/Features/Reader/ReaderImageModel.swift`、`PicaHubTests/ReaderImageModelTests.swift`
+  - 状态：已完成（2026-07-19，4 项阅读器图片调度专项测试在 iPhone Air / iOS 27 通过）
+  - 验收标准：
+    - 快速跳出并重新进入同一可见窗口时自动重新调度图片；
+    - 旧加载的迟到取消不得清除同索引的新加载；
+    - `CancellationError` 与 `APIError.cancelled` 不展示为图片加载失败；
+    - 仍保持最多 3 个并发加载和仅前向 2 张预取。
+
 ## Medium Priority
 
 - [x] 补充 `.env.example`

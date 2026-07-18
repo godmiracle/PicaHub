@@ -4,11 +4,22 @@ import UIKit
 
 @MainActor
 private final class ControlledReaderImageLoader: ReaderImageLoading {
+    enum CancellationResult {
+        case immediateCancellationError
+        case delayedAPIError
+    }
+
     private(set) var startedURLs: [URL] = []
     private(set) var activeURLs = Set<URL>()
     private(set) var cancelledURLs: [URL] = []
     private(set) var retriedURLs: [URL] = []
     private var continuations: [URL: CheckedContinuation<UIImage, any Error>] = [:]
+    private var cancelledContinuations: [URL: [CheckedContinuation<UIImage, any Error>]] = [:]
+    private let cancellationResult: CancellationResult
+
+    init(cancellationResult: CancellationResult = .immediateCancellationError) {
+        self.cancellationResult = cancellationResult
+    }
 
     func load(_ url: URL) async throws -> UIImage {
         startedURLs.append(url)
@@ -26,7 +37,13 @@ private final class ControlledReaderImageLoader: ReaderImageLoading {
     func cancelLoading(for url: URL) {
         cancelledURLs.append(url)
         activeURLs.remove(url)
-        continuations.removeValue(forKey: url)?.resume(throwing: CancellationError())
+        guard let continuation = continuations.removeValue(forKey: url) else { return }
+        switch cancellationResult {
+        case .immediateCancellationError:
+            continuation.resume(throwing: CancellationError())
+        case .delayedAPIError:
+            cancelledContinuations[url, default: []].append(continuation)
+        }
     }
 
     func removeDecodedImages() {}
@@ -39,6 +56,13 @@ private final class ControlledReaderImageLoader: ReaderImageLoading {
     func fail(_ url: URL) {
         activeURLs.remove(url)
         continuations.removeValue(forKey: url)?.resume(throwing: APIError.connection("offline"))
+    }
+
+    func finishDelayedCancellation(_ url: URL) {
+        guard var pending = cancelledContinuations[url], !pending.isEmpty else { return }
+        let continuation = pending.removeFirst()
+        cancelledContinuations[url] = pending
+        continuation.resume(throwing: APIError.cancelled)
     }
 }
 
@@ -122,6 +146,47 @@ struct ReaderImageModelTests {
         model.cancelAll()
     }
 
+    @Test func rapidJumpBackIgnoresLateCancellationAndAutomaticallyReloadsVisibleRange() async throws {
+        let urls = try (0..<8).map { index in
+            try #require(URL(string: "https://example.com/\(index).jpg"))
+        }
+        let loader = ControlledReaderImageLoader(cancellationResult: .delayedAPIError)
+        let model = ReaderImageModel(
+            urls: urls,
+            loader: loader,
+            lookAheadCount: 2,
+            maximumConcurrentLoads: 3
+        )
+
+        model.updateVisibleIndex(0)
+        await waitUntil { loader.activeURLs == Set(urls[0...2]) }
+        model.updateVisibleIndex(5)
+        await waitUntil { loader.activeURLs == Set(urls[5...7]) }
+        model.updateVisibleIndex(0)
+        await waitUntil { loader.activeURLs == Set(urls[0...2]) }
+
+        for url in urls[0...2] {
+            loader.finishDelayedCancellation(url)
+        }
+        await Task.yield()
+
+        #expect(loader.startedURLs.filter { urls[0...2].contains($0) }.count == 6)
+        #expect(urls[0...2].indices.allSatisfy { index in
+            Self.isLoading(model.state(at: index))
+        })
+
+        for url in urls[0...2] {
+            loader.finish(url)
+        }
+        await waitUntil { urls[0...2].indices.allSatisfy { Self.isLoaded(model.state(at: $0)) } }
+
+        #expect(urls[0...2].indices.allSatisfy { !Self.isFailed(model.state(at: $0)) })
+        model.cancelAll()
+        for url in urls[5...7] {
+            loader.finishDelayedCancellation(url)
+        }
+    }
+
     private func waitUntil(
         _ condition: @escaping @MainActor () -> Bool,
         attempts: Int = 100
@@ -135,6 +200,11 @@ struct ReaderImageModelTests {
 
     private static func isLoaded(_ state: ReaderImageModel.State) -> Bool {
         if case .loaded = state { return true }
+        return false
+    }
+
+    private static func isLoading(_ state: ReaderImageModel.State) -> Bool {
+        if case .loading = state { return true }
         return false
     }
 

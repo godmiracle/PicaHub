@@ -30,6 +30,8 @@ final class ReaderImageModel {
     @ObservationIgnored private let lookAheadCount: Int
     @ObservationIgnored private let maximumConcurrentLoads: Int
     @ObservationIgnored private var loadingTasks: [Int: Task<Void, Never>] = [:]
+    @ObservationIgnored private var loadGenerations: [Int: Int] = [:]
+    @ObservationIgnored private var nextLoadGeneration = 0
 
     init(
         urls: [URL?],
@@ -120,23 +122,36 @@ final class ReaderImageModel {
 
     private func startLoad(at index: Int, isRetry: Bool) {
         guard let url = urls[index], loadingTasks[index] == nil else { return }
+        nextLoadGeneration += 1
+        let generation = nextLoadGeneration
+        loadGenerations[index] = generation
         states[index] = .loading
         loadingTasks[index] = Task { [weak self] in
             guard let self else { return }
             do {
                 let image = try await (isRetry ? loader.retry(url) : loader.load(url))
                 try Task.checkCancellation()
-                finishLoad(at: index, result: .success(image))
+                finishLoad(at: index, generation: generation, result: .success(image))
             } catch is CancellationError {
-                finishCancellation(at: index)
+                finishCancellation(at: index, generation: generation)
             } catch {
-                finishLoad(at: index, result: .failure(error))
+                if Self.isCancellation(error) {
+                    finishCancellation(at: index, generation: generation)
+                } else {
+                    finishLoad(at: index, generation: generation, result: .failure(error))
+                }
             }
         }
     }
 
-    private func finishLoad(at index: Int, result: Result<UIImage, any Error>) {
+    private func finishLoad(
+        at index: Int,
+        generation: Int,
+        result: Result<UIImage, any Error>
+    ) {
+        guard loadGenerations[index] == generation else { return }
         loadingTasks[index] = nil
+        loadGenerations[index] = nil
         switch result {
         case let .success(image):
             states[index] = .loaded(image)
@@ -146,8 +161,10 @@ final class ReaderImageModel {
         scheduleLoads()
     }
 
-    private func finishCancellation(at index: Int) {
+    private func finishCancellation(at index: Int, generation: Int) {
+        guard loadGenerations[index] == generation else { return }
         loadingTasks[index] = nil
+        loadGenerations[index] = nil
         if states.indices.contains(index), case .loading = states[index] {
             states[index] = .idle
         }
@@ -156,6 +173,7 @@ final class ReaderImageModel {
 
     private func cancelLoad(at index: Int) {
         guard let task = loadingTasks.removeValue(forKey: index) else { return }
+        loadGenerations[index] = nil
         task.cancel()
         if let url = urls[index] {
             loader.cancelLoading(for: url)
@@ -163,5 +181,9 @@ final class ReaderImageModel {
         if case .loading = states[index] {
             states[index] = .idle
         }
+    }
+
+    private static func isCancellation(_ error: any Error) -> Bool {
+        error is CancellationError || (error as? APIError) == .cancelled
     }
 }
