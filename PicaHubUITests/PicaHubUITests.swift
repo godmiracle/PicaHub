@@ -57,6 +57,20 @@ final class PicaHubUITests: XCTestCase {
     }
 
     @MainActor
+    func testCategoryOpensPaginatedComicBrowse() throws {
+        let app = makeApp(authenticated: true)
+        app.launch()
+
+        let category = app.descendants(matching: .any)["category-ui-test-category"].firstMatch
+        XCTAssertTrue(category.waitForExistence(timeout: 3))
+        category.tap()
+
+        XCTAssertTrue(app.descendants(matching: .any)["comics-content"].firstMatch.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["comic-ui-test-comic"].firstMatch.exists)
+        XCTAssertTrue(app.buttons["comic-sort-menu"].exists)
+    }
+
+    @MainActor
     private func makeApp(authenticated: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting"]

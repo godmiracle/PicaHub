@@ -9,6 +9,7 @@ typealias ProductionAccountRepository = DefaultAccountRepository<
 struct AppDependencies {
     let accountRepository: any AccountRepository
     let categoryRepository: any CategoryRepository
+    let comicRepository: any ComicRepository
     let categoryImageCache: CategoryImageCache
     let apiClient: APIClient
     let imageURLBuilder: ImageURLBuilder
@@ -21,6 +22,7 @@ struct AppDependencies {
                 initialState: isAuthenticated ? .authenticated : .unauthenticated
             )
             categoryRepository = UITestCategoryRepository()
+            comicRepository = UITestComicRepository()
             categoryImageCache = CategoryImageCache()
             apiClient = APIClient(environment: environment)
             imageURLBuilder = ImageURLBuilder(environment: environment)
@@ -43,6 +45,7 @@ struct AppDependencies {
         )
         apiClient = client
         categoryRepository = APICategoryRepository(client: client)
+        comicRepository = APIComicRepository(client: client)
         categoryImageCache = CategoryImageCache()
         imageURLBuilder = ImageURLBuilder(environment: environment)
     }

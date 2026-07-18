@@ -3,6 +3,7 @@ import SwiftUI
 struct AppRootView: View {
     private let repository: any AccountRepository
     private let categoryRepository: any CategoryRepository
+    private let comicRepository: any ComicRepository
     private let categoryImageCache: CategoryImageCache
     private let imageURLBuilder: ImageURLBuilder
     @State private var model: AppRootModel
@@ -11,11 +12,13 @@ struct AppRootView: View {
     init(
         repository: any AccountRepository,
         categoryRepository: any CategoryRepository,
+        comicRepository: any ComicRepository,
         categoryImageCache: CategoryImageCache,
         imageURLBuilder: ImageURLBuilder
     ) {
         self.repository = repository
         self.categoryRepository = categoryRepository
+        self.comicRepository = comicRepository
         self.categoryImageCache = categoryImageCache
         self.imageURLBuilder = imageURLBuilder
         _model = State(initialValue: AppRootModel(repository: repository))
@@ -69,6 +72,7 @@ struct AppRootView: View {
     private var categoryView: some View {
         CategoryView(
             repository: categoryRepository,
+            comicRepository: comicRepository,
             imageCache: categoryImageCache,
             imageURLBuilder: imageURLBuilder,
             onLogout: { confirmsLogout = true }

@@ -77,4 +77,34 @@ struct UITestCategoryRepository: CategoryRepository {
         ]
     }
 }
+
+struct UITestComicRepository: ComicRepository {
+    func fetchComics(category: String, sort: ComicSort, page: Int) async throws -> Page<ComicSummary> {
+        Page(
+            docs: [
+                ComicSummary(
+                    id: "ui-test-comic",
+                    title: "UI 测试漫画",
+                    author: "测试作者",
+                    pagesCount: nil,
+                    epsCount: nil,
+                    finished: nil,
+                    categories: [category],
+                    tags: nil,
+                    thumb: ImageReference(
+                        fileServer: "https://example.com",
+                        path: "cover.jpg",
+                        originalName: nil
+                    ),
+                    likesCount: nil,
+                    totalViews: nil
+                )
+            ],
+            limit: 20,
+            page: page,
+            pages: 1,
+            total: 1
+        )
+    }
+}
 #endif

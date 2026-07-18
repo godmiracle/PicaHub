@@ -5,15 +5,18 @@ struct CategoryView: View {
     @State private var imageRefreshGeneration = 0
     private let imageCache: CategoryImageCache
     private let imageURLBuilder: ImageURLBuilder
+    private let comicRepository: any ComicRepository
     private let onLogout: @MainActor () -> Void
 
     init(
         repository: any CategoryRepository,
+        comicRepository: any ComicRepository,
         imageCache: CategoryImageCache,
         imageURLBuilder: ImageURLBuilder,
         onLogout: @escaping @MainActor () -> Void
     ) {
         _model = State(initialValue: CategoryModel(repository: repository))
+        self.comicRepository = comicRepository
         self.imageCache = imageCache
         self.imageURLBuilder = imageURLBuilder
         self.onLogout = onLogout
@@ -84,12 +87,17 @@ struct CategoryView: View {
                 spacing: 18
             ) {
                 ForEach(categories) { category in
-                    CategoryCard(
-                        category: category,
-                        imageCache: imageCache,
-                        imageURLBuilder: imageURLBuilder,
-                        refreshGeneration: imageRefreshGeneration
-                    )
+                    NavigationLink {
+                        ComicBrowseView(category: category.title, repository: comicRepository)
+                    } label: {
+                        CategoryCard(
+                            category: category,
+                            imageCache: imageCache,
+                            imageURLBuilder: imageURLBuilder,
+                            refreshGeneration: imageRefreshGeneration
+                        )
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(16)
