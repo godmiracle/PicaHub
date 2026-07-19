@@ -199,11 +199,8 @@ struct ComicDetailsView: View {
                                 )
                             } label: {
                                 HStack {
-                                    Text(chapter.title)
+                                    ChapterMetadataView(chapter: chapter)
                                     Spacer()
-                                    Text("#\(chapter.order)")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
                                     Image(systemName: "chevron.right")
                                         .font(.caption)
                                         .foregroundStyle(.tertiary)

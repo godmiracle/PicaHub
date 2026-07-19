@@ -24,6 +24,35 @@ private struct ImmediateChapterImageRepository: ChapterImageRepository {
     }
 }
 
+private actor RecordingChapterImageRepository: ChapterImageRepository {
+    private(set) var requestedOrders: [Int] = []
+
+    func fetchAllImages(comicID: String, chapterOrder: Int) async throws -> [ChapterImage] {
+        requestedOrders.append(chapterOrder)
+        return []
+    }
+}
+
+private actor SavedReaderProgressStore: ReadingProgressStore {
+    private var progress: ReadingProgress?
+
+    init(progress: ReadingProgress?) {
+        self.progress = progress
+    }
+
+    func loadProgress(for comicID: String) -> ReadingProgress? {
+        progress
+    }
+
+    func saveProgress(_ progress: ReadingProgress, for comicID: String) {
+        self.progress = progress
+    }
+
+    func removeProgress(for comicID: String) {
+        progress = nil
+    }
+}
+
 private actor SequenceChapterImageRepository: ChapterImageRepository {
     enum Outcome: Sendable {
         case success([ChapterImage])
@@ -47,6 +76,38 @@ private actor SequenceChapterImageRepository: ChapterImageRepository {
 
 @MainActor
 struct ReaderChapterModelTests {
+    @Test func explicitSelectionIgnoresSavedChapterAndRequestsSelectedChapter() async {
+        let selectedChapter = Chapter(
+            id: "selected",
+            title: "第三话",
+            order: 1,
+            updatedAt: nil
+        )
+        let savedChapter = Chapter(
+            id: "saved",
+            title: "第一话",
+            order: 2,
+            updatedAt: nil
+        )
+        let repository = RecordingChapterImageRepository()
+        let progressStore = SavedReaderProgressStore(
+            progress: ReadingProgress(chapterOrder: savedChapter.order, imageIndex: 7)
+        )
+        let model = ReaderChapterModel(
+            comicID: "comic",
+            chapters: [savedChapter, selectedChapter],
+            initialChapter: selectedChapter,
+            repository: repository,
+            progressStore: progressStore
+        )
+
+        model.loadCurrentChapter()
+        await waitUntil { model.contentState == .empty }
+
+        #expect(model.currentChapter == selectedChapter)
+        #expect(await repository.requestedOrders == [selectedChapter.order])
+    }
+
     @Test func validChapterWithoutImagesProducesDedicatedEmptyState() async {
         let model = ReaderChapterModel(
             comicID: "comic",

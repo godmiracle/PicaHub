@@ -338,6 +338,17 @@
     - `CancellationError` 与 `APIError.cancelled` 不展示为图片加载失败；
     - 仍保持最多 3 个并发加载和仅前向 2 张预取。
 
+- [x] P-034 统一详情与 Reader 的章节 title/order 语义
+  - 优先级：高
+  - 涉及文件：`ChapterMetadataView.swift`、`ComicDetailsView.swift`、`ReaderView.swift`、章节仓库与相关测试
+  - 状态：已完成（2026-07-19，用户在 iPhone Air / iOS 27 真机确认详情点击章节后 Reader 保持同一 title/order 且图片请求选择正确章节；targeted automated suites 未由 agent 执行）
+  - 验收标准：
+    - `Chapter.title` 与 `order` 作为独立服务端字段保持原始配对；
+    - 分页合并按参考实现只反转完整章节对象，不按 order 猜测排序或标题；
+    - 详情行和 Reader header 共用同一章节元数据展示；
+    - `title = 第三话、order = 1` 的 fixture 在仓库、详情标签和 Reader 映射测试中保持一致；
+    - 用户真机确认详情与 Reader 保持同一章节元数据；自动化专项测试另待具备可用执行环境时补跑。
+
 ## Medium Priority
 
 - [x] 补充 `.env.example`

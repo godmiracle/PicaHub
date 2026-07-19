@@ -45,20 +45,14 @@ struct ReaderView: View {
         .foregroundStyle(.white)
         .navigationTitle(comicTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .task { await model.restoreProgressAndLoad() }
+        .task { model.loadCurrentChapter() }
         .onDisappear { model.cancel() }
         .accessibilityIdentifier("reader")
     }
 
     private var metadataHeader: some View {
         HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(model.currentChapter.title)
-                    .font(.headline)
-                Text("第 \(model.currentChapter.order) 话")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            ChapterMetadataView(chapter: model.currentChapter)
             Spacer()
             if !model.images.isEmpty {
                 Text("\(model.currentImageIndex + 1) / \(model.images.count)")

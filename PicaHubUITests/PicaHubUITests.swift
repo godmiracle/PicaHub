@@ -118,7 +118,8 @@ final class PicaHubUITests: XCTestCase {
 
         XCTAssertTrue(app.navigationBars["UI 测试漫画"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["用于验证详情与章节独立加载。"].exists)
-        XCTAssertTrue(app.staticTexts["第一话"].exists)
+        XCTAssertEqual(app.staticTexts["chapter-title-ui-test-selected-chapter"].label, "第三话")
+        XCTAssertEqual(app.staticTexts["chapter-order-ui-test-selected-chapter"].label, "第 1 话")
     }
 
     @MainActor
@@ -133,13 +134,18 @@ final class PicaHubUITests: XCTestCase {
         XCTAssertTrue(comic.waitForExistence(timeout: 3))
         comic.tap()
 
-        let chapter = app.descendants(matching: .any)["open-reader-ui-test-chapter"].firstMatch
+        let chapter = app.descendants(matching: .any)["open-reader-ui-test-selected-chapter"].firstMatch
         XCTAssertTrue(chapter.waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["chapter-title-ui-test-selected-chapter"].label, "第三话")
+        XCTAssertEqual(app.staticTexts["chapter-order-ui-test-selected-chapter"].label, "第 1 话")
         chapter.tap()
 
-        XCTAssertTrue(app.descendants(matching: .any)["reader"].firstMatch.waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["第一话"].exists)
+        let reader = app.descendants(matching: .any)["reader"].firstMatch
+        XCTAssertTrue(reader.waitForExistence(timeout: 3))
+        XCTAssertEqual(reader.staticTexts["chapter-title-ui-test-selected-chapter"].label, "第三话")
+        XCTAssertEqual(reader.staticTexts["chapter-order-ui-test-selected-chapter"].label, "第 1 话")
         XCTAssertTrue(app.staticTexts["本章暂无图片"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.descendants(matching: .any)["reader-images-error"].firstMatch.exists)
     }
 
     @MainActor

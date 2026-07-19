@@ -142,13 +142,33 @@ struct UITestComicDetailsRepository: ComicDetailsRepository {
     }
 
     func fetchAllChapters(comicID: String) async throws -> [Chapter] {
-        [Chapter(id: "ui-test-chapter", title: "第一话", order: 1, updatedAt: nil)]
+        [
+            Chapter(id: "ui-test-saved-chapter", title: "第一话", order: 2, updatedAt: nil),
+            Chapter(id: "ui-test-selected-chapter", title: "第三话", order: 1, updatedAt: nil),
+        ]
     }
 }
 
 struct UITestChapterImageRepository: ChapterImageRepository {
     func fetchAllImages(comicID: String, chapterOrder: Int) async throws -> [ChapterImage] {
-        []
+        guard chapterOrder == 1 else { throw APIError.invalidResponse }
+        return [ChapterImage]()
+    }
+}
+
+actor UITestReadingProgressStore: ReadingProgressStore {
+    private var progress = ReadingProgress(chapterOrder: 2, imageIndex: 0)
+
+    func loadProgress(for comicID: String) -> ReadingProgress? {
+        progress
+    }
+
+    func saveProgress(_ progress: ReadingProgress, for comicID: String) {
+        self.progress = progress
+    }
+
+    func removeProgress(for comicID: String) {
+        progress = ReadingProgress(chapterOrder: 2, imageIndex: 0)
     }
 }
 

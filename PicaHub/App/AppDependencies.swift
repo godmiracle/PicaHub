@@ -34,7 +34,7 @@ struct AppDependencies {
             readerDependencies = ReaderDependencies(
                 chapterImageRepository: UITestChapterImageRepository(),
                 imagePipeline: ImagePipeline(),
-                progressStore: UserDefaultsReadingProgressStore()
+                progressStore: UITestReadingProgressStore()
             )
             return
         }

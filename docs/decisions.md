@@ -172,6 +172,30 @@ HaKa 参考实现明确说明服务端返回结果在按页合并后需要执行
 
 task 6.4 的上一章/下一章导航必须以该统一顺序定义边界，并用专项测试锁定方向。
 
+## 2026-07-19 - Preserve Chapter Title and Order as Independent Fields
+
+### Decision
+
+章节分页仍按 HaKa 参考实现合并后整体反转一次，但反转只移动完整 `Chapter` 值，不按 `order` 重新排序，也不从 `order` 合成标题。详情列表和 Reader header 共用 `ChapterMetadataView`：主标题始终是服务端 `title`，副标题始终是服务端 `order` 的“第 n 话”表示。
+
+### Reason
+
+真实设备证据存在 `title = 第三话`、`order = 1` 的有效章节；两者不是可互相推导的同义字段。此前详情把 order 另行显示为 `#1`，Reader 则显示“第 1 话”，导致同一章节在两处看起来采用不同语义。
+
+### Alternatives Considered
+
+- 按 order 重写为“第一话”：会丢失服务端“第三话”等真实标题，也会破坏番外、序章等非数字标题。
+- 按 order 数值排序：参考实现只反转完整服务端列表，数值排序可能改变特殊章节顺序。
+- 详情只显示 title：与参考实现接近，但无法解释用户已确认正确的 order 副标题，且仍让详情与 Reader 元数据结构不同。
+
+### Impact
+
+章节对象从仓库到详情导航、Reader 当前章节和图片 API 的 title/order 配对保持不变；两个页面使用一致标签，Reader 继续用 order 请求章节图片。
+
+### Follow-up
+
+真实服务是否对所有漫画都保证分页为 oldest-first 仍只能依赖当前参考实现与既有 Spike；若未来服务改变方向，应以新的真实响应证据调整仓库归一化，而不是按 order 猜测。
+
 ## 2026-07-19 - Bound Chapter Image Page Concurrency
 
 ### Decision

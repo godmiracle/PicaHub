@@ -50,17 +50,19 @@ struct APIComicDetailsRepositoryTests {
         #expect(details.title == "测试漫画")
         #expect(await recorder.pages == [1, 2, 3])
         #expect(chapters.map(\.id) == ["newest", "middle", "shared", "oldest"])
+        #expect(chapters.last?.title == "第三话")
+        #expect(chapters.last?.order == 1)
     }
 
     private static func chapterResponse(page: Int) -> Data {
         let json: String
         switch page {
         case 1:
-            json = #"{"code":200,"message":"success","data":{"eps":{"docs":[{"_id":"oldest","title":"第一话","order":1},{"_id":"shared","title":"第二话","order":2}],"limit":2,"page":1,"pages":3,"total":5}}}"#
+            json = #"{"code":200,"message":"success","data":{"eps":{"docs":[{"_id":"oldest","title":"第三话","order":1},{"_id":"shared","title":"番外篇","order":2}],"limit":2,"page":1,"pages":3,"total":5}}}"#
         case 2:
-            json = #"{"code":200,"message":"success","data":{"eps":{"docs":[{"_id":"shared","title":"第二话","order":2},{"_id":"middle","title":"第三话","order":3}],"limit":2,"page":2,"pages":3,"total":5}}}"#
+            json = #"{"code":200,"message":"success","data":{"eps":{"docs":[{"_id":"shared","title":"番外篇","order":2},{"_id":"middle","title":"序章","order":3}],"limit":2,"page":2,"pages":3,"total":5}}}"#
         case 3:
-            json = #"{"code":200,"message":"success","data":{"eps":{"docs":[{"_id":"newest","title":"第四话","order":4}],"limit":2,"page":3,"pages":3,"total":5}}}"#
+            json = #"{"code":200,"message":"success","data":{"eps":{"docs":[{"_id":"newest","title":"后日谈","order":4}],"limit":2,"page":3,"pages":3,"total":5}}}"#
         default:
             json = #"{"code":200,"message":"success","data":{"eps":{"docs":[],"limit":2,"page":0,"pages":3,"total":5}}}"#
         }
