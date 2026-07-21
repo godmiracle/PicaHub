@@ -184,6 +184,25 @@ struct ComicDetailsView: View {
                         .frame(maxWidth: .infinity, minHeight: 70)
                         .accessibilityIdentifier("comic-chapters-empty")
                 } else {
+                    NavigationLink {
+                        ReaderView(
+                            comicID: model.comicID,
+                            comicTitle: navigationTitle,
+                            chapters: chapters,
+                            initialChapter: chapters[0],
+                            repository: readerDependencies.chapterImageRepository,
+                            imageURLBuilder: imageURLBuilder,
+                            imagePipeline: readerDependencies.imagePipeline,
+                            progressStore: readerDependencies.progressStore,
+                            restoresLastProgress: true
+                        )
+                    } label: {
+                        Label("继续阅读", systemImage: "book.fill")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("resume-reader")
+
                     LazyVStack(spacing: 0) {
                         ForEach(chapters) { chapter in
                             NavigationLink {

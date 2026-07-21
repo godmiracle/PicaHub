@@ -23,4 +23,12 @@ enum AppDiagnostics {
     static func requestCompleted(method: HTTPMethod, path: String, statusCode: Int) {
         debug("API \(method.rawValue) \(path) completed with HTTP \(statusCode)")
     }
+
+    static func imageCacheResult(_ diagnostic: ImageCacheDiagnostic) {
+        let width = diagnostic.targetPixelWidth.map(String.init) ?? "original"
+        debug(
+            "Image cache source=\(diagnostic.source.rawValue) "
+                + "resource=\(diagnostic.resourceIdentifier) width=\(width)"
+        )
+    }
 }

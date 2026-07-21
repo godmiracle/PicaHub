@@ -1,11 +1,18 @@
 import SwiftUI
+import UIKit
 
 struct ReaderView: View {
     @State private var model: ReaderChapterModel
+    @State private var settings = ReaderSettings()
+    @State private var toolbarState = ReaderToolbarState()
     private let comicTitle: String
     private let imageURLBuilder: ImageURLBuilder
     private let imagePipeline: ImagePipeline
     private let cancellationController: ReaderImageCancellationController
+    private let restoresLastProgress: Bool
+    private let settingsStore: any ReaderSettingsStore
+    private let idleTimerController: ReaderIdleTimerController
+    @Environment(\.colorScheme) private var colorScheme
 
     @MainActor
     init(
@@ -16,13 +23,18 @@ struct ReaderView: View {
         repository: any ChapterImageRepository,
         imageURLBuilder: ImageURLBuilder,
         imagePipeline: ImagePipeline,
-        progressStore: any ReadingProgressStore = UserDefaultsReadingProgressStore()
+        progressStore: any ReadingProgressStore = UserDefaultsReadingProgressStore(),
+        restoresLastProgress: Bool = false,
+        settingsStore: (any ReaderSettingsStore)? = nil
     ) {
         let cancellationController = ReaderImageCancellationController()
         self.cancellationController = cancellationController
         self.comicTitle = comicTitle
         self.imageURLBuilder = imageURLBuilder
         self.imagePipeline = imagePipeline
+        self.restoresLastProgress = restoresLastProgress
+        self.settingsStore = settingsStore ?? UserDefaultsReaderSettingsStore()
+        idleTimerController = ReaderIdleTimerController()
         _model = State(
             initialValue: ReaderChapterModel(
                 comicID: comicID,
@@ -36,18 +48,65 @@ struct ReaderView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            metadataHeader
+        ZStack {
             content
-            chapterNavigation
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        toolbarState.handleSurfaceTap()
+                    }
+                }
+            if toolbarState.isVisible {
+                VStack(spacing: 0) {
+                    metadataHeader
+                    Spacer()
+                    chapterNavigation
+                }
+                .transition(.opacity)
+            }
         }
-        .background(Color.black)
-        .foregroundStyle(.white)
+        .background(readerBackground)
+        .foregroundStyle(readerForeground)
         .navigationTitle(comicTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .task { model.loadCurrentChapter() }
-        .onDisappear { model.cancel() }
+        .task {
+            settings = settingsStore.load()
+            idleTimerController.apply(keepScreenAwake: settings.keepScreenAwake)
+            if restoresLastProgress {
+                await model.restoreProgressAndLoad()
+            } else {
+                await model.loadSelectedChapter()
+            }
+        }
+        .onChange(of: settings) { _, value in
+            settingsStore.save(value)
+            idleTimerController.apply(keepScreenAwake: value.keepScreenAwake)
+        }
+        .onDisappear {
+            model.cancel()
+            idleTimerController.restore()
+        }
         .accessibilityIdentifier("reader")
+    }
+
+    private var readerBackground: Color {
+        switch settings.backgroundMode {
+        case .black:
+            return .black
+        case .darkGray:
+            return Color(red: 0.12, green: 0.12, blue: 0.13)
+        case .system:
+            return colorScheme == .dark ? .black : Color(uiColor: .systemBackground)
+        }
+    }
+
+    private var readerForeground: Color {
+        switch settings.backgroundMode {
+        case .system:
+            return colorScheme == .dark ? .white : .primary
+        case .black, .darkGray:
+            return .white
+        }
     }
 
     private var metadataHeader: some View {
@@ -59,6 +118,7 @@ struct ReaderView: View {
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
+            settingsMenu
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -67,12 +127,27 @@ struct ReaderView: View {
         .accessibilityIdentifier("reader-metadata")
     }
 
+    private var settingsMenu: some View {
+        Menu {
+            Picker("背景", selection: $settings.backgroundMode) {
+                Text("纯黑").tag(ReaderBackgroundMode.black)
+                Text("深灰").tag(ReaderBackgroundMode.darkGray)
+                Text("跟随系统").tag(ReaderBackgroundMode.system)
+            }
+            Toggle("自动隐藏工具栏", isOn: $settings.autoHideToolbar)
+            Toggle("保持屏幕常亮", isOn: $settings.keepScreenAwake)
+        } label: {
+            Image(systemName: "gearshape")
+        }
+        .accessibilityLabel("阅读器设置")
+    }
+
     @ViewBuilder
     private var content: some View {
         switch model.contentState {
         case .idle, .loading:
             ProgressView("正在加载章节图片")
-                .tint(.white)
+                .tint(readerForeground)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .accessibilityIdentifier("reader-images-loading")
         case .content:
@@ -82,7 +157,14 @@ struct ReaderView: View {
                 imagePipeline: imagePipeline,
                 initialVisibleIndex: model.currentImageIndex,
                 cancellationController: cancellationController,
-                onVisibleIndexChanged: { model.updateVisibleImageIndex($0) }
+                onVisibleIndexChanged: { model.updateVisibleImageIndex($0) },
+                onScrollActivity: {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        toolbarState.handleScroll(autoHideEnabled: settings.autoHideToolbar)
+                    }
+                },
+                backgroundColor: readerBackground,
+                foregroundColor: readerForeground
             )
             .id(model.currentChapter.id)
         case .empty:
@@ -91,7 +173,7 @@ struct ReaderView: View {
             } description: {
                 Text("可以返回详情或切换到其他章节。")
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(readerForeground)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accessibilityIdentifier("reader-images-empty")
         case let .failed(message):
@@ -103,7 +185,7 @@ struct ReaderView: View {
                 Button("重试") { model.loadCurrentChapter() }
                     .buttonStyle(.borderedProminent)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(readerForeground)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accessibilityIdentifier("reader-images-error")
         }

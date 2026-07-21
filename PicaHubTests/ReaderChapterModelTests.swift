@@ -53,6 +53,38 @@ private actor SavedReaderProgressStore: ReadingProgressStore {
     }
 }
 
+private actor BlockingReaderProgressStore: ReadingProgressStore {
+    private var progress: ReadingProgress?
+    private var firstSaveContinuation: CheckedContinuation<Void, Never>?
+    private(set) var started: [ReadingProgress] = []
+    private(set) var completed: [ReadingProgress] = []
+    private(set) var maximumConcurrentSaves = 0
+    private var activeSaveCount = 0
+
+    func loadProgress(for comicID: String) -> ReadingProgress? { progress }
+
+    func saveProgress(_ progress: ReadingProgress, for comicID: String) async {
+        activeSaveCount += 1
+        maximumConcurrentSaves = max(maximumConcurrentSaves, activeSaveCount)
+        started.append(progress)
+        if started.count == 1 {
+            await withCheckedContinuation { continuation in
+                firstSaveContinuation = continuation
+            }
+        }
+        completed.append(progress)
+        self.progress = progress
+        activeSaveCount -= 1
+    }
+
+    func removeProgress(for comicID: String) { progress = nil }
+
+    func releaseFirstSave() {
+        firstSaveContinuation?.resume()
+        firstSaveContinuation = nil
+    }
+}
+
 private actor SequenceChapterImageRepository: ChapterImageRepository {
     enum Outcome: Sendable {
         case success([ChapterImage])
@@ -106,6 +138,78 @@ struct ReaderChapterModelTests {
 
         #expect(model.currentChapter == selectedChapter)
         #expect(await repository.requestedOrders == [selectedChapter.order])
+    }
+
+    @Test func explicitSelectionRestoresOnlyTheSelectedChaptersOwnIndex() async {
+        let selectedChapter = Self.chapters[1]
+        let progressStore = SavedReaderProgressStore(
+            progress: ReadingProgress(chapterID: selectedChapter.id, chapterOrder: selectedChapter.order, imageIndex: 2)
+        )
+        let model = ReaderChapterModel(
+            comicID: "comic",
+            chapters: Self.chapters,
+            initialChapter: selectedChapter,
+            repository: SequenceChapterImageRepository(
+                outcomes: [.success([Self.image(id: "0"), Self.image(id: "1"), Self.image(id: "2")])]
+            ),
+            progressStore: progressStore
+        )
+
+        await model.loadSelectedChapter()
+        await waitUntil { model.contentState == .content }
+
+        #expect(model.currentChapter == selectedChapter)
+        #expect(model.currentImageIndex == 2)
+    }
+
+    @Test func explicitSelectionNeverUsesAnotherChaptersIndex() async {
+        let selectedChapter = Self.chapters[1]
+        let progressStore = SavedReaderProgressStore(
+            progress: ReadingProgress(chapterID: "another", chapterOrder: 99, imageIndex: 2)
+        )
+        let model = ReaderChapterModel(
+            comicID: "comic",
+            chapters: Self.chapters,
+            initialChapter: selectedChapter,
+            repository: SequenceChapterImageRepository(
+                outcomes: [.success([Self.image(id: "0"), Self.image(id: "1"), Self.image(id: "2")])]
+            ),
+            progressStore: progressStore
+        )
+
+        await model.loadSelectedChapter()
+        await waitUntil { model.contentState == .content }
+
+        #expect(model.currentChapter == selectedChapter)
+        #expect(model.currentImageIndex == 0)
+    }
+
+    @Test func progressWritesStaySerializedAndConvergeToLatestIndexOnExit() async {
+        let store = BlockingReaderProgressStore()
+        let model = ReaderChapterModel(
+            comicID: "comic",
+            chapters: Self.chapters,
+            initialChapter: Self.chapters[0],
+            repository: SequenceChapterImageRepository(
+                outcomes: [.success((0..<4).map { Self.image(id: "\($0)") })]
+            ),
+            progressStore: store
+        )
+
+        model.loadCurrentChapter()
+        await waitUntil { model.contentState == .content }
+        try? await Task.sleep(for: .milliseconds(300))
+        await waitUntil { await store.started.count == 1 }
+
+        model.updateVisibleImageIndex(1)
+        model.updateVisibleImageIndex(2)
+        model.updateVisibleImageIndex(3)
+        model.cancel()
+        await store.releaseFirstSave()
+        await waitUntil { await store.completed.count == 2 }
+
+        #expect(await store.maximumConcurrentSaves == 1)
+        #expect(await store.completed.map(\.imageIndex) == [0, 3])
     }
 
     @Test func validChapterWithoutImagesProducesDedicatedEmptyState() async {
@@ -237,11 +341,12 @@ struct ReaderChapterModelTests {
 
     private func waitUntil(
         _ condition: @escaping @MainActor () async -> Bool,
-        attempts: Int = 100
+        timeout: Duration = .seconds(2)
     ) async {
-        for _ in 0..<attempts {
+        let deadline = ContinuousClock.now.advanced(by: timeout)
+        while ContinuousClock.now < deadline {
             if await condition() { return }
-            await Task.yield()
+            try? await Task.sleep(for: .milliseconds(10))
         }
         Issue.record("等待章节状态超时")
     }

@@ -44,6 +44,7 @@ final class ReaderChapterModel {
     @ObservationIgnored private var loadGeneration = 0
     @ObservationIgnored private var restoredImageIndex: Int?
     @ObservationIgnored private var hasLoadedCurrentChapter = false
+    @ObservationIgnored private let progressWriter: ReaderProgressWriter
 
     init(
         comicID: String,
@@ -59,15 +60,29 @@ final class ReaderChapterModel {
         self.repository = repository
         self.progressStore = progressStore
         self.cancelImageWork = cancelImageWork
+        progressWriter = ReaderProgressWriter(
+            comicID: comicID,
+            progressStore: progressStore
+        )
     }
 
     func loadCurrentChapter() {
         startLoadingCurrentChapter()
     }
 
+    func loadSelectedChapter() async {
+        restoredImageIndex = await progressIndex(for: currentChapter)
+        guard !Task.isCancelled else { return }
+        startLoadingCurrentChapter()
+    }
+
     func restoreProgressAndLoad() async {
         if let progress = await progressStore.loadProgress(for: comicID) {
-            if let savedChapter = chapters.first(where: { $0.order == progress.chapterOrder }) {
+            if let chapterID = progress.chapterID,
+               let savedChapter = chapters.first(where: { $0.id == chapterID }) {
+                currentChapter = savedChapter
+                restoredImageIndex = max(0, progress.imageIndex)
+            } else if let savedChapter = chapters.first(where: { $0.order == progress.chapterOrder }) {
                 currentChapter = savedChapter
                 restoredImageIndex = max(0, progress.imageIndex)
             } else {
@@ -102,6 +117,7 @@ final class ReaderChapterModel {
         loadTask?.cancel()
         loadTask = nil
         cancelImageWork()
+        progressWriter.flush()
         isLoading = false
     }
 
@@ -118,6 +134,14 @@ final class ReaderChapterModel {
         hasLoadedCurrentChapter = false
         errorMessage = nil
         startLoadingCurrentChapter()
+    }
+
+    private func progressIndex(for chapter: Chapter) async -> Int? {
+        guard let progress = await progressStore.loadProgress(for: comicID) else { return nil }
+        guard progress.chapterID == chapter.id ||
+            (progress.chapterID == nil && progress.chapterOrder == chapter.order)
+        else { return nil }
+        return max(0, progress.imageIndex)
     }
 
     private func startLoadingCurrentChapter() {
@@ -172,9 +196,71 @@ final class ReaderChapterModel {
 
     private func persistCurrentProgress() {
         let progress = ReadingProgress(
+            chapterID: currentChapter.id,
             chapterOrder: currentChapter.order,
             imageIndex: currentImageIndex
         )
-        Task { await progressStore.saveProgress(progress, for: comicID) }
+        progressWriter.submit(progress)
+    }
+}
+
+@MainActor
+private final class ReaderProgressWriter {
+    private let comicID: String
+    private let progressStore: any ReadingProgressStore
+    private var pendingProgress: ReadingProgress?
+    private var revision = 0
+    private var flushRequested = false
+    private var drainTask: Task<Void, Never>?
+
+    init(comicID: String, progressStore: any ReadingProgressStore) {
+        self.comicID = comicID
+        self.progressStore = progressStore
+    }
+
+    func submit(_ progress: ReadingProgress) {
+        pendingProgress = progress
+        revision += 1
+        startDrainIfNeeded()
+    }
+
+    func flush() {
+        guard pendingProgress != nil || drainTask != nil else { return }
+        flushRequested = true
+        revision += 1
+        drainTask?.cancel()
+        startDrainIfNeeded()
+    }
+
+    private func startDrainIfNeeded() {
+        guard drainTask == nil else { return }
+        drainTask = Task { [weak self] in
+            await self?.drain()
+        }
+    }
+
+    private func drain() async {
+        defer {
+            flushRequested = false
+            drainTask = nil
+        }
+
+        while pendingProgress != nil {
+            if !flushRequested {
+                let observedRevision = revision
+                do {
+                    try await Task.sleep(for: .milliseconds(250))
+                } catch {
+                    // Cancellation is used by flush() to bypass the debounce delay.
+                }
+                if !flushRequested, observedRevision != revision {
+                    continue
+                }
+            }
+
+            guard let progress = pendingProgress else { continue }
+            pendingProgress = nil
+            await progressStore.saveProgress(progress, for: comicID)
+        }
     }
 }

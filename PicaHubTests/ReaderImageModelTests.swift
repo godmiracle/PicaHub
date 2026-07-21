@@ -12,7 +12,10 @@ private final class ControlledReaderImageLoader: ReaderImageLoading {
     private(set) var startedURLs: [URL] = []
     private(set) var activeURLs = Set<URL>()
     private(set) var cancelledURLs: [URL] = []
+    private(set) var cancelledTargetWidths: [Int] = []
     private(set) var retriedURLs: [URL] = []
+    private(set) var decodedCacheClearCount = 0
+    private(set) var peakActiveLoadCount = 0
     private var continuations: [URL: CheckedContinuation<UIImage, any Error>] = [:]
     private var cancelledContinuations: [URL: [CheckedContinuation<UIImage, any Error>]] = [:]
     private let cancellationResult: CancellationResult
@@ -24,6 +27,7 @@ private final class ControlledReaderImageLoader: ReaderImageLoading {
     func load(_ url: URL) async throws -> UIImage {
         startedURLs.append(url)
         activeURLs.insert(url)
+        peakActiveLoadCount = max(peakActiveLoadCount, activeURLs.count)
         return try await withCheckedThrowingContinuation { continuation in
             continuations[url] = continuation
         }
@@ -46,11 +50,22 @@ private final class ControlledReaderImageLoader: ReaderImageLoading {
         }
     }
 
-    func removeDecodedImages() {}
+    func cancelLoading(for url: URL, targetPixelWidth: Int) {
+        cancelledTargetWidths.append(targetPixelWidth)
+        cancelLoading(for: url)
+    }
 
-    func finish(_ url: URL) {
+    func removeDecodedImages() {
+        decodedCacheClearCount += 1
+    }
+
+    func finish(_ url: URL, size: CGSize = CGSize(width: 100, height: 200)) {
         activeURLs.remove(url)
-        continuations.removeValue(forKey: url)?.resume(returning: UIImage())
+        let image = UIGraphicsImageRenderer(size: size).image { context in
+            UIColor.systemPurple.setFill()
+            context.fill(CGRect(origin: .zero, size: size))
+        }
+        continuations.removeValue(forKey: url)?.resume(returning: image)
     }
 
     func fail(_ url: URL) {
@@ -119,8 +134,43 @@ struct ReaderImageModelTests {
         loader.finish(urls[3])
         await waitUntil { loader.startedURLs.count == 3 }
         #expect(loader.startedURLs.last == urls[5])
+
+        loader.finish(urls[4])
+        await waitUntil { loader.startedURLs.count == 4 }
+        #expect(loader.startedURLs.last == urls[6])
         #expect(!loader.startedURLs.contains(urls[7]))
+        #expect(loader.peakActiveLoadCount == 2)
         model.cancelAll()
+    }
+
+    @Test func cancelAllStopsEveryActiveLoadAndLeavesCancelledImagesIdle() async throws {
+        let urls = try (0..<5).map { index in
+            try #require(URL(string: "https://example.com/\(index).jpg"))
+        }
+        let loader = ControlledReaderImageLoader(cancellationResult: .delayedAPIError)
+        let model = ReaderImageModel(
+            urls: urls,
+            loader: loader,
+            lookAheadCount: 2,
+            maximumConcurrentLoads: 3
+        )
+
+        model.updateVisibleIndex(1)
+        await waitUntil { loader.activeURLs == Set(urls[1...3]) }
+
+        model.cancelAll()
+
+        #expect(loader.activeURLs.isEmpty)
+        #expect(Set(loader.cancelledURLs) == Set(urls[1...3]))
+        #expect(urls[1...3].indices.allSatisfy { Self.isIdle(model.state(at: $0)) })
+
+        for url in urls[1...3] {
+            loader.finishDelayedCancellation(url)
+        }
+        await Task.yield()
+
+        #expect(urls[1...3].indices.allSatisfy { Self.isIdle(model.state(at: $0)) })
+        #expect(urls[1...3].indices.allSatisfy { !Self.isFailed(model.state(at: $0)) })
     }
 
     @Test func changingVisiblePositionCancelsObsoletePrefetchBeforeStartingNewRange() async throws {
@@ -187,13 +237,114 @@ struct ReaderImageModelTests {
         }
     }
 
+    @Test func decodedResidencyStaysBoundedAndKeepsAspectRatioAfterEviction() async throws {
+        let urls = try (0..<8).map { index in
+            try #require(URL(string: "https://example.com/\(index).jpg"))
+        }
+        let loader = ControlledReaderImageLoader()
+        let model = ReaderImageModel(
+            urls: urls,
+            loader: loader,
+            lookAheadCount: 2,
+            residentBehindCount: 1,
+            residentAheadCount: 1,
+            maximumConcurrentLoads: 3
+        )
+
+        model.updateVisibleIndex(0)
+        await waitUntil { loader.activeURLs == Set(urls[0...2]) }
+        for url in urls[0...2] {
+            loader.finish(url, size: CGSize(width: 120, height: 240))
+        }
+        await waitUntil { model.residentImageCount == 2 }
+        #expect(Self.isIdle(model.state(at: 2)))
+
+        model.updateVisibleIndex(4)
+        await waitUntil { loader.activeURLs == Set(urls[4...6]) }
+
+        #expect(model.residentImageCount == 0)
+        #expect(Self.isIdle(model.state(at: 0)))
+        #expect(model.aspectRatio(at: 0) == 0.5)
+
+        for url in urls[4...6] {
+            loader.finish(url)
+        }
+        await waitUntil { model.residentImageCount == 2 }
+        #expect(Self.isIdle(model.state(at: 6)))
+        #expect(model.residentImageCount <= 3)
+    }
+
+    @Test func shortReverseScrollUsesBackwardResidentWindowWithoutReloading() async throws {
+        let urls = try (0..<6).map { index in
+            try #require(URL(string: "https://example.com/\(index).jpg"))
+        }
+        let loader = ControlledReaderImageLoader()
+        let model = ReaderImageModel(
+            urls: urls,
+            loader: loader,
+            lookAheadCount: 2,
+            residentBehindCount: 1,
+            residentAheadCount: 2,
+            maximumConcurrentLoads: 3
+        )
+
+        model.updateVisibleIndex(2)
+        await waitUntil { loader.activeURLs == Set(urls[2...4]) }
+        for url in urls[2...4] { loader.finish(url) }
+        await waitUntil { model.residentImageCount == 3 }
+
+        model.updateVisibleIndex(3)
+        await Task.yield()
+        model.updateVisibleIndex(2)
+        await Task.yield()
+
+        #expect(Self.isLoaded(model.state(at: 2)))
+        #expect(model.cacheSource(at: 2) == .resident)
+        let diagnostic = try #require(model.cacheDiagnostics[2])
+        #expect(diagnostic.resourceIdentifier.hasPrefix("example.com/"))
+        #expect(!diagnostic.resourceIdentifier.contains("?"))
+        #expect(loader.startedURLs.filter { $0 == urls[2] }.count == 1)
+    }
+
+    @Test func backgroundingCancelsPrefetchAndKeepsOnlyVisibleDecodedImage() async throws {
+        let urls = try (0..<5).map { index in
+            try #require(URL(string: "https://example.com/\(index).jpg"))
+        }
+        let loader = ControlledReaderImageLoader()
+        let model = ReaderImageModel(
+            urls: urls,
+            loader: loader,
+            lookAheadCount: 2,
+            maximumConcurrentLoads: 3,
+            targetPixelWidth: 900
+        )
+
+        model.updateVisibleIndex(0)
+        await waitUntil { loader.activeURLs == Set(urls[0...2]) }
+        loader.finish(urls[0])
+        await waitUntil { Self.isLoaded(model.state(at: 0)) }
+        model.handleBackgrounding()
+        await Task.yield()
+
+        #expect(model.residentImageCount == 1)
+        #expect(Set(loader.cancelledURLs).isSuperset(of: Set(urls[1...2])))
+        #expect(loader.cancelledTargetWidths.allSatisfy { $0 == 900 })
+        #expect(loader.decodedCacheClearCount == 1)
+
+        model.handleForegrounding()
+        await waitUntil { loader.activeURLs == Set(urls[1...2]) }
+        #expect(model.visibleIndex == 0)
+        model.cancelAll()
+    }
+
     private func waitUntil(
         _ condition: @escaping @MainActor () -> Bool,
-        attempts: Int = 100
+        timeout: Duration = .seconds(2)
     ) async {
-        for _ in 0..<attempts {
+        let deadline = ContinuousClock.now.advanced(by: timeout)
+        while ContinuousClock.now < deadline {
             if condition() { return }
-            await Task.yield()
+            try? await Task.sleep(for: .milliseconds(10))
         }
         Issue.record("等待异步图片调度状态超时")
     }
@@ -205,6 +356,11 @@ struct ReaderImageModelTests {
 
     private static func isLoading(_ state: ReaderImageModel.State) -> Bool {
         if case .loading = state { return true }
+        return false
+    }
+
+    private static func isIdle(_ state: ReaderImageModel.State) -> Bool {
+        if case .idle = state { return true }
         return false
     }
 
